@@ -1,0 +1,47 @@
+---
+title: Structure Types
+description: Reference inferred structure types used by the Structures factory.
+---
+
+This entry summarizes the inferred `*Structure` aliases exposed by Hoshimi.
+Use these types to keep extensions strongly typed when overriding built-in structures.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Structures](/core-api/variables/Structures.html)
+- [InferCustomStructure](/core-api/types/InferCustomStructure.html)
+- [PlayerStructure](/core-api/types/PlayerStructure.html)
+- [NodeStructure](/core-api/types/NodeStructure.html)
+- [QueueStructure](/core-api/types/QueueStructure.html)
+- [TrackStructure](/core-api/types/TrackStructure.html)
+- [UnresolvedTrackStructure](/core-api/types/UnresolvedTrackStructure.html)
+- [LyricsManagerStructure](/core-api/types/LyricsManagerStructure.html)
+- [NodeManagerStructure](/core-api/types/NodeManagerStructure.html)
+- [FilterManagerStructure](/core-api/types/FilterManagerStructure.html)
+- [PlayerVoiceStateStructure](/core-api/types/PlayerVoiceStateStructure.html)
+
+## What These Types Are
+
+`*Structure` aliases represent the final instance type returned by each factory in `Structures`.
+
+## Practical Pattern
+
+```ts twoslash copy wrap title="structure-types-usage.ts"
+import type { PlayerStructure, TrackStructure } from 'hoshimi';
+
+function attachPlayerFeatures(player: PlayerStructure): void {
+  // Works with default Player or any custom Player replacement.
+  console.log(player.guildId);
+}
+
+function inspectTrack(track: TrackStructure): string {
+  return track.info.title;
+}
+```
+
+## Why It Matters
+
+- Keeps extensions strongly typed after overrides.
+- Avoids coupling app code to a concrete built-in class.
+- Makes module augmentation with `CustomizableStructures` predictable.

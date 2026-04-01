@@ -1,0 +1,12 @@
+{
+  "title": "Guides",
+  "defaultOpen": true,
+  "pages": [
+    "search-sources",
+    "source-registry",
+    "tracks-and-resolution",
+    "node-operations",
+    "queue-storage",
+    "filters-lyrics"
+  ]
+}

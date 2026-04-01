@@ -1,0 +1,116 @@
+---
+title: Bot Integration
+description: Wire Hoshimi into your bot lifecycle with ready and raw gateway events.
+---
+
+This guide mirrors the real integration used in the example bot.
+Follow it to wire startup, gateway forwarding and player creation in one flow.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Hoshimi](/core-api/classes/Hoshimi.html)
+- [Hoshimi.createPlayer](/core-api/classes/Hoshimi.html#createplayer)
+- [Hoshimi.updateVoiceState](/core-api/classes/Hoshimi.html#updatevoicestate)
+- [PlayerOptions](/core-api/interfaces/PlayerOptions.html)
+
+## 1) Create the Manager
+
+Use `createHoshimi` (or `new Hoshimi`) and pass your gateway sender.
+
+```ts twoslash copy wrap title="manager-bootstrap.ts"
+import { createHoshimi, SearchSources } from 'hoshimi';
+
+const sendPayload = async (_guildId: string, _payload: unknown): Promise<void> => {};
+
+const manager = createHoshimi({
+  sendPayload,
+  defaultSearchSource: SearchSources.Spotify,
+  nodes: [
+    {
+      host: 'localhost',
+      port: 2333,
+      password: 'youshallnotpass',
+    },
+  ],
+  nodeOptions: {
+    resumable: true,
+    resumeByLibrary: true,
+    resumeTimeout: 300_000,
+  },
+  playerOptions: {
+    onDisconnect: {
+      autoDestroy: true,
+    },
+  },
+});
+```
+
+## 2) Init on Ready
+
+Call [`manager.init()`](/core-api/classes/Hoshimi.html#init) once your bot client is ready.
+
+```ts twoslash copy wrap title="ready-event.ts"
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+declare const currentUser: {
+  id: string;
+  username: string;
+  avatar: string | null;
+};
+
+manager.init(currentUser);
+```
+
+## 3) Forward Voice Packets
+
+Forward raw gateway packets to [`updateVoiceState`](/core-api/classes/Hoshimi.html#updatevoicestate).
+
+```ts twoslash copy wrap title="raw-event.ts"
+import type {
+  Hoshimi,
+  VoicePacket,
+  VoiceServer,
+  VoiceState,
+  ChannelDeletePacket,
+} from 'hoshimi';
+
+type AnyPacket = VoicePacket | VoiceServer | VoiceState | ChannelDeletePacket;
+
+declare const manager: Hoshimi;
+declare const packet: AnyPacket;
+
+await manager.updateVoiceState(packet);
+```
+
+## 4) Use in Commands
+
+Create or reuse player instances per guild with [`createPlayer`](/core-api/classes/Hoshimi.html#createplayer).
+
+```ts twoslash copy wrap title="command-flow.ts"
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+declare const guildId: string;
+declare const voiceId: string;
+declare const textId: string;
+
+const player = manager.createPlayer({
+  guildId,
+  voiceId,
+  textId,
+  volume: 100,
+  selfDeaf: true,
+});
+
+if (!player.connected) await player.connect();
+```
+
+## Notes
+
+- [`createPlayer()`](/core-api/classes/Hoshimi.html#createplayer) is idempotent by guild: if a player exists, it returns the existing instance.
+- [`manager.isUseable()`](/core-api/classes/Hoshimi.html#isuseable) is a quick health check before command execution.
+- Prefer handling reconnect/session options in `nodeOptions` from day one.

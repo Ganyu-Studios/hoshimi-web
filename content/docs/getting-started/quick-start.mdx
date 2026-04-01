@@ -1,0 +1,97 @@
+---
+title: Quick Start
+description: Build your first working play command flow in minutes.
+---
+
+This page gives you the shortest complete path from setup to playback.
+You can copy this flow directly and evolve it into your command architecture.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+## 1) Create the manager
+
+```ts twoslash copy wrap title="quick-start-manager.ts"
+import { Hoshimi } from 'hoshimi';
+
+const gatewaySend = async (_guildId: string, _payload: unknown): Promise<void> => {};
+
+const manager = new Hoshimi({
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  sendPayload(guildId, payload) {
+    return gatewaySend(guildId, payload);
+  },
+});
+```
+
+## 2) Init on ready
+
+```ts twoslash copy wrap title="quick-start-ready.ts"
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+declare const botUser: {
+  id: string;
+  username: string;
+  avatar: string | null;
+};
+
+manager.init(botUser);
+```
+
+## 3) Forward raw voice packets
+
+```ts twoslash copy wrap title="quick-start-raw.ts"
+import type {
+  Hoshimi,
+  VoicePacket,
+  VoiceServer,
+  VoiceState,
+  ChannelDeletePacket,
+} from 'hoshimi';
+
+type AnyPacket = VoicePacket | VoiceServer | VoiceState | ChannelDeletePacket;
+
+declare const manager: Hoshimi;
+declare const packet: AnyPacket;
+
+await manager.updateVoiceState(packet);
+```
+
+## 4) Search, queue and play
+
+```ts twoslash copy wrap title="quick-start-play.ts"
+import { LoadType } from 'hoshimi';
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+declare const guildId: string;
+declare const voiceId: string;
+declare const textId: string;
+
+const player = manager.createPlayer({
+  guildId,
+  voiceId,
+  textId,
+  volume: 100,
+  selfDeaf: true,
+});
+
+const result = await player.search({
+  query: 'Nujabes - Feather',
+  requester: { id: '123', username: 'demo' },
+});
+
+if (result.loadType === LoadType.Track || result.loadType === LoadType.Search) {
+  await player.queue.add(result.tracks[0]);
+
+  if (!player.connected) await player.connect();
+  if (!player.isPlaying()) await player.play();
+}
+```
+
+## Next
+
+- Continue with [Bot Integration](/docs/getting-started/bot-integration)
+- Deep dive into [Core API](/core-api/index.html)

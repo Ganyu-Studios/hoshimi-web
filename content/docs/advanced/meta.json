@@ -1,0 +1,5 @@
+{
+  "title": "Advanced",
+  "defaultOpen": false,
+  "pages": ["custom-structures", "structure-types", "errors-recovery"]
+}

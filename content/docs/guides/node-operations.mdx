@@ -1,0 +1,66 @@
+---
+title: Node Operations
+description: Work with Node, NodeManager and REST helpers for resilient playback.
+---
+
+Use this page to understand node selection, node health and decode/REST operations.
+Apply these patterns to reduce routing errors and improve failover behavior.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Node](/core-api/classes/Node.html)
+- [NodeManager](/core-api/classes/NodeManager.html)
+- [NodeManager.getLeastUsed](/core-api/classes/NodeManager.html#getleastused)
+- [Node.search](/core-api/classes/Node.html#search)
+- [Node.decode](/core-api/classes/Node.html#decode)
+- [Rest](/core-api/classes/Rest.html)
+
+## Select Nodes Safely
+
+```ts twoslash copy wrap title="node-select.ts"
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+const leastUsed = manager.nodeManager.getLeastUsed();
+
+if (!leastUsed) {
+  throw new Error('No available nodes');
+}
+
+console.log(leastUsed.id);
+console.log(leastUsed.ready);
+console.log(leastUsed.penalties);
+```
+
+## Decode Tracks
+
+```ts twoslash copy wrap title="node-decode.ts"
+import type { Node } from 'hoshimi';
+
+declare const node: Node;
+
+const single = await node.decode.single('QAAAyAIA...', 'user-id');
+const many = await node.decode.multiple(['QAAAyAIA...', 'QAAByAIA...'], 'user-id');
+
+console.log(single.info.title);
+console.log(many.length);
+```
+
+## REST Utility
+
+```ts twoslash copy wrap title="rest-ops.ts"
+import type { Node } from 'hoshimi';
+
+declare const node: Node;
+
+const players = await node.rest.getPlayers();
+console.log(players.length);
+```
+
+## Operational Notes
+
+- Prefer `getLeastUsed()` for default load balancing.
+- Validate `node.ready` before forcing node-specific operations.
+- Use `node.rest` for low-level operations, and manager/player abstractions for normal flows.

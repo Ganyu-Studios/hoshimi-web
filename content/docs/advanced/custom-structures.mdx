@@ -1,0 +1,83 @@
+---
+title: Custom Structures
+description: Override built-in structures (Player, Node, LyricsManager) safely.
+---
+
+Hoshimi allows replacing default classes through `Structures`.
+Use this when you need project-specific behavior without forking core internals.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Structures](/core-api/variables/Structures.html)
+- [Player](/core-api/classes/Player.html)
+- [Node](/core-api/classes/Node.html)
+- [LyricsManager](/core-api/classes/LyricsManager.html)
+- [CustomizableStructures](/core-api/interfaces/CustomizableStructures.html)
+
+Structure type links:
+- [PlayerStructure](/core-api/types/PlayerStructure.html)
+- [NodeStructure](/core-api/types/NodeStructure.html)
+- [QueueStructure](/core-api/types/QueueStructure.html)
+- [TrackStructure](/core-api/types/TrackStructure.html)
+- [UnresolvedTrackStructure](/core-api/types/UnresolvedTrackStructure.html)
+- [LyricsManagerStructure](/core-api/types/LyricsManagerStructure.html)
+
+Related registry:
+- [SourceRegistry](/core-api/variables/SourceRegistry.html)
+
+## Basic Override Pattern
+
+```ts twoslash copy wrap title="override-structures.ts"
+import { Player, Structures } from 'hoshimi';
+
+class HoshimiPlayer extends Player {
+  public isDJModeEnabled(): boolean {
+    return this.volume > 120;
+  }
+}
+
+Structures.Player = (...args) => new HoshimiPlayer(...args);
+```
+
+## Multiple Overrides
+
+```ts twoslash copy wrap title="multi-override.ts"
+import { LyricsManager, Node, Player, Structures } from 'hoshimi';
+
+class ExtendedPlayer extends Player {}
+class ExtendedNode extends Node {}
+class ExtendedLyricsManager extends LyricsManager {}
+
+Structures.Player = (...args) => new ExtendedPlayer(...args);
+Structures.Node = (...args) => new ExtendedNode(...args);
+Structures.LyricsManager = (...args) => new ExtendedLyricsManager(...args);
+```
+
+## Custom Data Types (Module Augmentation)
+
+```ts twoslash copy wrap title="custom-types.ts"
+import type { LyricsResult } from 'hoshimi';
+
+declare module 'hoshimi' {
+  interface CustomizablePlayerStorage {
+    enabledAutoplay: boolean;
+    enabledLyrics: boolean;
+    lyricsId: string;
+    lyrics: LyricsResult;
+  }
+
+  interface CustomizableTrack {
+    requester: {
+      id: string;
+      username: string;
+    };
+  }
+}
+```
+
+## Best Practices
+
+- Override structures once during bootstrap.
+- Keep constructor signatures unchanged.
+- Add narrow, domain-specific methods instead of rewriting core flow.

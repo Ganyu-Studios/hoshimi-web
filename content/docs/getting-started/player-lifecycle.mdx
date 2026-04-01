@@ -1,0 +1,99 @@
+---
+title: Player Lifecycle
+description: End-to-end player flow, search, queue, play, pause, skip, seek and destroy.
+---
+
+This page documents the practical playback lifecycle used by real commands.
+Use it as the baseline sequence for play, queue control and teardown logic.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Player](/core-api/classes/Player.html)
+- [Player.play](/core-api/classes/Player.html#play)
+- [Player.setPaused](/core-api/classes/Player.html#setpaused)
+- [Player.skip](/core-api/classes/Player.html#skip)
+- [Player.seek](/core-api/classes/Player.html#seek)
+- [Player.setLoop](/core-api/classes/Player.html#setloop)
+- [LoopMode](/core-api/enums/LoopMode.html)
+
+## Create or Reuse
+
+```ts twoslash copy wrap title="create-player.ts"
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+declare const guildId: string;
+declare const voiceId: string;
+declare const textId: string;
+
+const player = manager.createPlayer({
+  guildId,
+  voiceId,
+  textId,
+  volume: 100,
+  selfDeaf: true,
+});
+```
+
+## Search and Play
+
+```ts twoslash copy wrap title="search-and-play.ts"
+import { LoadType } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const result = await player.search({
+  query: 'Never Gonna Give You Up',
+  requester: {
+    id: '123',
+    username: 'demo-user',
+  },
+});
+
+if (result.loadType === LoadType.Track || result.loadType === LoadType.Search) {
+  const track = result.tracks[0];
+  await player.queue.add(track);
+
+  if (!player.isPlaying()) {
+    await player.play();
+  }
+}
+```
+
+## Runtime Controls
+
+```ts twoslash copy wrap title="runtime-controls.ts"
+import { LoopMode } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+await player.setPaused(true);
+await player.setPaused(false);
+
+await player.seek(30_000);
+await player.skip({ to: 1 });
+await player.setVolume(150);
+
+player.setLoop(LoopMode.Queue);
+```
+
+## Disconnect vs Destroy
+
+```ts twoslash copy wrap title="end-of-session.ts"
+import { DestroyReasons } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+await player.disconnect();
+await player.destroy(DestroyReasons.Stop);
+```
+
+## State Gotchas
+
+- [`player.connected`](/core-api/classes/Player.html#connected) means voice connection state, not playback.
+- [`player.playing`](/core-api/classes/Player.html#playing) and [`player.paused`](/core-api/classes/Player.html#paused) are not the same signal.
+- [`player.position`](/core-api/classes/Player.html#position) is computed state; use [`seek()`](/core-api/classes/Player.html#seek) to move position.

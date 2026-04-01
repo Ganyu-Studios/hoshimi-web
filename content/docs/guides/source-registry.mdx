@@ -1,0 +1,64 @@
+---
+title: Source Registry
+description: Register and resolve custom search sources with SourceRegistry.
+---
+
+This page explains how to register custom source aliases and build valid lavalink identifiers.
+Use it when your project needs provider-specific search prefixes or custom source names.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [SourceRegistry](/core-api/variables/SourceRegistry.html)
+- [SearchSources](/core-api/enums/SearchSources.html)
+- [SearchSource](/core-api/types/SearchSource.html)
+- [SearchSourceKey](/core-api/types/SearchSourceKey.html)
+- [SourceRegistration](/core-api/interfaces/SourceRegistration.html)
+- [SourceProtocol](/core-api/types/SourceProtocol.html)
+
+## Register Sources
+
+```ts twoslash copy wrap title="source-registry-register.ts"
+import { SourceRegistry } from 'hoshimi';
+
+SourceRegistry.register({
+  source: 'mysearch',
+  name: 'my-provider',
+  protocol: 'colon',
+});
+
+SourceRegistry.register(
+  { source: 'mytts', protocol: 'double-slash' },
+  { source: 'rawquery', protocol: 'raw' },
+);
+```
+
+## Resolve and Validate
+
+```ts twoslash copy wrap title="source-registry-resolve.ts"
+import { SourceRegistry } from 'hoshimi';
+
+const source = SourceRegistry.resolve('my-provider');
+const exists = SourceRegistry.isRegistered('mysearch');
+const all = SourceRegistry.getRegistered();
+
+console.log(source, exists, all);
+```
+
+## Build Identifiers
+
+```ts twoslash copy wrap title="source-registry-identifiers.ts"
+import { SourceRegistry } from 'hoshimi';
+
+const a = SourceRegistry.createIdentifier('mysearch', 'Daft Punk');
+const b = SourceRegistry.createIdentifier('mytts', 'hello world');
+const c = SourceRegistry.createIdentifier('rawquery', 'ytsearch:already-prefixed');
+
+console.log(a, b, c);
+```
+
+## Notes
+
+- Use `register()` during app bootstrap.
+- Prefer `resolve()` before search if source can be user-provided.
+- Keep protocol choice consistent per source to avoid query format drift.

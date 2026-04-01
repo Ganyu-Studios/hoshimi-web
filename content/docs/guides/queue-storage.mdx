@@ -1,0 +1,117 @@
+---
+title: Queue and Storage
+description: Queue operations, persistence strategy and custom storage adapters.
+---
+
+This guide combines queue usage with storage patterns used in the example bot.
+It is designed to keep queue state consistent across reconnects and restarts.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Queue](/core-api/classes/Queue.html)
+- [Queue.add](/core-api/classes/Queue.html#add)
+- [Queue.shift](/core-api/classes/Queue.html#shift)
+- [Queue.current](/core-api/classes/Queue.html#current)
+- [PlayerStorageAdapter](/core-api/classes/PlayerStorageAdapter.html)
+- [QueueStorageAdapter](/core-api/classes/QueueStorageAdapter.html)
+- [QueueJson](/core-api/interfaces/QueueJson.html)
+
+## Queue Operations
+
+```ts twoslash copy wrap title="queue-ops.ts"
+import type { Player, Track } from 'hoshimi';
+
+declare const player: Player;
+declare const track: Track;
+
+const queue = player.queue;
+
+if (queue.isEmpty()) {
+  // nothing queued yet
+}
+
+await queue.add(track);
+const next = await queue.shift();
+
+console.log(queue.size);
+console.log(queue.totalSize);
+console.log(queue.current);
+console.log(queue.history.length);
+
+await queue.shuffle();
+await queue.splice(0, 1);
+await queue.clear();
+```
+
+## In-Memory Defaults
+
+```ts twoslash copy wrap title="memory-storage.ts"
+import { PlayerMemoryStorage, QueueMemoryStorage } from 'hoshimi';
+
+const playerStorage = new PlayerMemoryStorage();
+const queueStorage = new QueueMemoryStorage();
+
+playerStorage.namespace = 'hoshimiplayer';
+queueStorage.namespace = 'hoshimiqueue';
+```
+
+## Redis Queue Adapter (Real Pattern)
+
+```ts twoslash copy wrap title="redis-queue-adapter.ts"
+import type { QueueJson, RestOrArray } from 'hoshimi';
+import { QueueStorageAdapter } from 'hoshimi';
+
+interface RedisLike {
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string): Promise<void>;
+  del(key: string): Promise<number>;
+  exists(key: string): Promise<number>;
+}
+
+class RedisStorage extends QueueStorageAdapter {
+  constructor(private readonly redis: RedisLike) {
+    super();
+  }
+
+  override async get(key: string): Promise<QueueJson | undefined> {
+    const value = await this.redis.get(this.buildKey(this.namespace, key));
+    return value ? this.parse(value) : undefined;
+  }
+
+  override async set(key: string, value: QueueJson): Promise<void> {
+    await this.redis.set(this.buildKey(this.namespace, key), this.stringify(value));
+  }
+
+  override async delete(key: string): Promise<boolean> {
+    return (await this.redis.del(this.buildKey(this.namespace, key))) > 0;
+  }
+
+  override async has(key: string): Promise<boolean> {
+    return (await this.redis.exists(this.buildKey(this.namespace, key))) > 0;
+  }
+
+  override async clear(): Promise<void> {
+    // implement according to your redis strategy
+  }
+
+  override parse(value: unknown): QueueJson {
+    return typeof value === "string" ? JSON.parse(value) : (value as QueueJson);
+  }
+
+  override stringify<R = string>(value: unknown): R {
+    return (typeof value === "object" ? JSON.stringify(value) : value) as R;
+  }
+
+  public buildKey(...parts: RestOrArray<string>): string {
+    const flattern = parts.flat();
+    return flattern.join(":");
+  }
+}
+```
+
+## Practical Persistence Notes
+
+- Persist only what you can safely replay (`voiceId`, `textId`, queue data, node session info).
+- Store feature flags in [player storage](/core-api/classes/PlayerStorageAdapter.html) (`enabledAutoplay`, `enabledLyrics`).
+- Clear lyric/session keys on `PlayerDestroy` and `QueueEnd` to avoid stale messages.

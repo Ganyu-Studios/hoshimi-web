@@ -1,0 +1,73 @@
+---
+title: Search and Sources
+description: Query tracks safely with manager/player search and source selection.
+---
+
+This guide documents how search works in the real API surface.
+Use it to choose sources intentionally and branch correctly by load type.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Hoshimi.search](/core-api/classes/Hoshimi.html#search)
+- [Player.search](/core-api/classes/Player.html#search)
+- [SearchOptions](/core-api/interfaces/SearchOptions.html)
+- [SearchSources](/core-api/enums/SearchSources.html)
+- [LoadType](/core-api/enums/LoadType.html)
+- [QueryResult](/core-api/interfaces/QueryResult.html)
+
+## Search from Manager
+
+Use manager search when you want to resolve results before creating/using a player.
+
+```ts twoslash copy wrap title="manager-search.ts"
+import { SearchSources } from 'hoshimi';
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+const result = await manager.search({
+  query: 'Daft Punk - Harder Better Faster Stronger',
+  source: SearchSources.Youtube,
+  requester: {
+    id: '123',
+    username: 'demo-user',
+  },
+});
+
+console.log(result.loadType);
+console.log(result.tracks.length);
+```
+
+## Search from Player
+
+Use player search in command handlers where the player already exists.
+
+```ts twoslash copy wrap title="player-search.ts"
+import { LoadType } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const result = await player.search({
+  query: 'Lofi hip hop',
+  requester: {
+    id: '123',
+    username: 'demo-user',
+  },
+});
+
+if (result.loadType === LoadType.Track || result.loadType === LoadType.Search) {
+  await player.queue.add(result.tracks[0]);
+
+  if (!player.isPlaying()) {
+    await player.play();
+  }
+}
+```
+
+## Source Strategy
+
+- Set a default source in manager options (`defaultSearchSource`).
+- Override per query with `source` in `SearchOptions` when needed.
+- Always branch by `loadType` (`Track`, `Search`, `Playlist`, `Empty`, `Error`).

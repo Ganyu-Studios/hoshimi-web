@@ -1,0 +1,87 @@
+---
+title: Filters and Lyrics
+description: Apply audio filters and manage lyric subscriptions safely.
+---
+
+This page reflects command-level patterns used in the example bot.
+It helps you keep filter state and lyric subscriptions synchronized safely.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [FilterManager](/core-api/classes/FilterManager.html)
+- [FilterManager.setNightcore](/core-api/classes/FilterManager.html#setnightcore)
+- [FilterManager.setKaraoke](/core-api/classes/FilterManager.html#setkaraoke)
+- [FilterManager.reset](/core-api/classes/FilterManager.html#reset)
+- [LyricsManager](/core-api/classes/LyricsManager.html)
+- [LyricsManager.current](/core-api/classes/LyricsManager.html#current)
+- [LyricsManager.subscribe](/core-api/classes/LyricsManager.html#subscribe)
+- [LyricsManager.unsubscribe](/core-api/classes/LyricsManager.html#unsubscribe)
+
+## Enable and Reset Filters
+
+```ts twoslash copy wrap title="filters-basic.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+await player.filterManager.setNightcore({
+  rate: 1.25,
+  pitch: 1.25,
+  speed: 1.25,
+});
+
+await player.filterManager.setKaraoke({
+  level: 1.0,
+  monoLevel: 1.0,
+  filterBand: 220,
+  filterWidth: 100,
+});
+
+await player.filterManager.reset();
+```
+
+## Lyrics Flow
+
+```ts twoslash copy wrap title="lyrics-flow.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const lyrics = await player.lyrics.current();
+
+if (lyrics && !('error' in lyrics)) {
+  await player.data.set('lyrics', lyrics);
+  await player.data.set('enabledLyrics', true);
+
+  await player.lyrics.subscribe();
+}
+```
+
+## Cleanup Pattern
+
+```ts twoslash copy wrap title="lyrics-cleanup.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const lyricsId = await player.data.get('lyricsId');
+if (lyricsId) {
+  const enabled = !!(await player.data.get('enabledLyrics'));
+
+  if (enabled) {
+    await player.lyrics.unsubscribe();
+  }
+
+  await player.data.delete('lyricsId');
+  await player.data.delete('lyrics');
+  await player.data.delete('enabledLyrics');
+}
+```
+
+## Common Pitfalls
+
+- [`player.filterManager.plugin`](/core-api/classes/FilterManager.html#plugin) is the Lavalink plugin filter manager.
+- [`player.filterManager.dspx`](/core-api/classes/FilterManager.html#dspx) is the DSPX plugin filter manager.
+- Always reset filters when switching presets aggressively.
+- For lyrics, treat provider errors as expected runtime cases and fallback gracefully.

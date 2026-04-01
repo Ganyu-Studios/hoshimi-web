@@ -1,0 +1,60 @@
+---
+title: Errors and Recovery
+description: Handle runtime failures with typed errors and recovery strategies.
+---
+
+This guide covers practical error handling based on exported error classes.
+It focuses on predictable fallbacks, typed guards and recovery-safe command flow.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [ManagerError](/core-api/classes/ManagerError.html)
+- [OptionError](/core-api/classes/OptionError.html)
+- [PlayerError](/core-api/classes/PlayerError.html)
+- [NodeError](/core-api/classes/NodeError.html)
+- [StorageError](/core-api/classes/StorageError.html)
+- [ResolveError](/core-api/classes/ResolveError.html)
+- [RestError](/core-api/classes/RestError.html)
+
+## Typed Error Handling
+
+```ts twoslash copy wrap title="typed-errors.ts"
+import {
+  ManagerError,
+  NodeError,
+  OptionError,
+  PlayerError,
+  ResolveError,
+  RestError,
+  StorageError,
+} from 'hoshimi';
+
+try {
+  // any operation that may fail
+} catch (error) {
+  if (error instanceof OptionError) {
+    console.error('Invalid options:', error.message);
+  } else if (error instanceof ManagerError) {
+    console.error('Manager state error:', error.message);
+  } else if (error instanceof NodeError) {
+    console.error('Node connection error:', error.message);
+  } else if (error instanceof PlayerError) {
+    console.error('Playback error:', error.message);
+  } else if (error instanceof ResolveError) {
+    console.error('Track resolve error:', error.message);
+  } else if (error instanceof RestError) {
+    console.error('Lavalink REST error:', error.message);
+  } else if (error instanceof StorageError) {
+    console.error('Storage adapter error:', error.message);
+  }
+}
+```
+
+## Recovery Checklist
+
+- Before commands: check manager health (`isUseable`).
+- Before player operations: verify voice channel and player existence.
+- For queue operations: guard with `queue.isEmpty()`.
+- On reconnect-sensitive flows: persist player/session data after updates.
+- On teardown (`QueueEnd`/`PlayerDestroy`): clear transient storage (lyrics/message IDs).

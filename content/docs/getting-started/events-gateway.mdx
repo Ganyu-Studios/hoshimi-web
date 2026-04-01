@@ -1,0 +1,64 @@
+---
+title: Events and Gateway
+description: Ready/raw integration and lavalink event handlers for stable runtime behavior.
+---
+
+This page focuses on event wiring and cleanup behavior.
+It is useful as a checklist to avoid stale voice state and dangling listeners.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [HoshimiEvents](/core-api/interfaces/HoshimiEvents.html)
+- [Hoshimi.updateVoiceState](/core-api/classes/Hoshimi.html#updatevoicestate)
+- [EventNames](/core-api/enums/EventNames.html)
+- [VoicePacket](/core-api/interfaces/VoicePacket.html)
+
+## Ready + Raw Events
+
+```ts twoslash copy wrap title="gateway-events.ts"
+import type {
+  ChannelDeletePacket,
+  Hoshimi,
+  VoicePacket,
+  VoiceServer,
+  VoiceState,
+} from 'hoshimi';
+
+type AnyPacket = VoicePacket | VoiceServer | VoiceState | ChannelDeletePacket;
+
+declare const manager: Hoshimi;
+declare const user: { id: string; username: string; avatar: string | null };
+declare const packet: AnyPacket;
+
+manager.init(user);
+await manager.updateVoiceState(packet);
+```
+
+## Event Hooks
+
+```ts twoslash copy wrap title="manager-events.ts"
+import { EventNames } from 'hoshimi';
+import type { Hoshimi } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+manager.on(EventNames.NodeReady, (node) => {
+  console.log('Node ready:', node.id);
+});
+
+manager.on(EventNames.PlayerCreate, (player) => {
+  console.log('Player created:', player.guildId);
+});
+
+manager.on(EventNames.QueueEnd, (player) => {
+  console.log('Queue ended:', player.guildId);
+});
+```
+
+## Production Checklist
+
+- Call [`init()`](/core-api/classes/Hoshimi.html#init) once after client ready.
+- Forward all raw voice packets to [`updateVoiceState()`](/core-api/classes/Hoshimi.html#updatevoicestate).
+- Persist key session/player fields in `PlayerUpdate`.
+- Clear message/lyrics/session state on `QueueEnd` and `PlayerDestroy`.

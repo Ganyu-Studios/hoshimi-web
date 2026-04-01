@@ -1,0 +1,57 @@
+---
+title: Tracks and Resolution
+description: Work with Track and UnresolvedTrack safely using type guards.
+---
+
+This page explains how to handle resolved and unresolved tracks in queue and playback flows.
+Use it to keep runtime checks explicit when working with mixed track inputs.
+
+Type reference: [Core API (TypeDoc)](/core-api/index.html)
+
+Quick links:
+- [Track](/core-api/classes/Track.html)
+- [UnresolvedTrack](/core-api/classes/UnresolvedTrack.html)
+- [TrackInfo](/core-api/interfaces/TrackInfo.html)
+- [UnresolvedTrackInfo](/core-api/types/UnresolvedTrackInfo.html)
+- [isResolved](/core-api/functions/isResolved.html)
+- [isUnresolved](/core-api/functions/isUnresolved.html)
+
+## Narrow Track Types
+
+```ts twoslash copy wrap title="track-guards.ts"
+import { isResolved, isUnresolved } from 'hoshimi';
+import type { Track, UnresolvedTrack } from 'hoshimi';
+
+declare const input: Track | UnresolvedTrack;
+
+if (isResolved(input)) {
+  console.log(input.info.identifier);
+}
+
+if (isUnresolved(input)) {
+  console.log(input.info.title);
+}
+```
+
+## Queue With Mixed Inputs
+
+```ts twoslash copy wrap title="queue-mixed-tracks.ts"
+import type { Player, Track, UnresolvedTrack } from 'hoshimi';
+
+declare const player: Player;
+declare const items: Array<Track | UnresolvedTrack>;
+
+for (const item of items) {
+  await player.queue.add(item);
+}
+
+if (!player.isPlaying()) {
+  await player.play();
+}
+```
+
+## Notes
+
+- Prefer `isResolved()` before relying on encoded identifiers.
+- Keep unresolved tracks minimal and let node search resolve final metadata.
+- Store requester/userData consistently when creating tracks manually.

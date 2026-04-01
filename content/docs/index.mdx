@@ -1,0 +1,57 @@
+---
+title: Introduction
+description: Start building with Hoshimi, a typed Lavalink v4 client.
+---
+
+Hoshimi is a TypeScript-first Lavalink v4 client focused on clean architecture, strict typing and practical extension points.
+
+## Why Hoshimi?
+
+- Typed API surface exported from src/index.ts.
+- Clear separation between manager, node, player, queue and storage.
+- Ready for custom structures and adapter-based persistence.
+
+## Install
+
+```bash
+pnpm add hoshimi
+```
+
+## Quick Setup
+
+```ts twoslash copy wrap title="src/index.ts"
+const gatewaySend = async (_guildId: string, _payload: unknown): Promise<void> => {};
+// ---cut---
+import { Hoshimi } from 'hoshimi';
+
+const hoshimi = new Hoshimi({
+  nodes: [
+    {
+      host: 'localhost',
+      port: 2333,
+      password: 'youshallnotpass',
+    },
+  ],
+  sendPayload(guildId, payload) {
+    // Forward payload to your gateway implementation.
+    return gatewaySend(guildId, payload);
+  },
+});
+```
+
+## Documentation Map
+
+- [Quick Start](/docs/getting-started/quick-start): minimal setup and first playback flow.
+- [Bot Integration](/docs/getting-started/bot-integration): how to wire gateway payloads and player creation.
+- [Events and Gateway](/docs/getting-started/events-gateway): event model and voice packet forwarding.
+- [Player Lifecycle](/docs/getting-started/player-lifecycle): play, pause, skip, seek and loop behavior.
+- [Search and Sources](/docs/guides/search-sources): search patterns and source selection strategy.
+- [Source Registry](/docs/guides/source-registry): custom source registration and identifier building.
+- [Tracks and Resolution](/docs/guides/tracks-and-resolution): resolved/unresolved track handling and type guards.
+- [Node Operations](/docs/guides/node-operations): node selection, health and decode/search operations.
+- [Queue and Storage](/docs/guides/queue-storage): queue workflows and persistence adapters.
+- [Filters and Lyrics](/docs/guides/filters-lyrics): audio filter chains and lyrics subscription lifecycle.
+- [Custom Structures](/docs/advanced/custom-structures): overriding built-in structures safely.
+- [Structure Types](/docs/advanced/structure-types): inferred structure aliases and extension-safe typing.
+- [Errors and Recovery](/docs/advanced/errors-recovery): expected runtime failures and recovery patterns.
+- [Core API (TypeDoc)](/core-api/index.html): complete generated API reference for classes, types and members.

@@ -25,7 +25,7 @@ if (!hasHoshimiSource) {
 
 try {
   console.log("[prebuild] Installing hoshimi submodule dependencies...");
-  execSync("pnpm install --cwd hoshimi", {
+  execSync("pnpm install -C hoshimi", {
     stdio: "inherit",
   });
 

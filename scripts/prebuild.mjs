@@ -24,12 +24,18 @@ if (!hasHoshimiSource) {
 }
 
 try {
+  console.log("[prebuild] Installing hoshimi submodule dependencies...");
+  execSync("pnpm install --cwd hoshimi", {
+    stdio: "inherit",
+  });
+
+  console.log("[prebuild] Building core API documentation...");
   execSync("pnpm core-api:build", {
     stdio: "inherit",
   });
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);
-  console.error("[prebuild] Failed to run TypeDoc:", message);
+  console.error("[prebuild] Failed to run setup:", message);
   process.exit(1);
 }
 

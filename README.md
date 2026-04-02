@@ -59,3 +59,25 @@ resources:
   features and API.
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 - [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+
+## Deploy on Vercel
+
+This project is ready to deploy on Vercel as a Next.js app.
+
+1. Import this repository in Vercel.
+2. Keep the detected framework as Next.js.
+3. Build settings are already defined in `vercel.json`:
+  - `installCommand`: `pnpm install --frozen-lockfile`
+  - `buildCommand`: `SKIP_CORE_API_BUILD=1 pnpm build`
+
+### Why `SKIP_CORE_API_BUILD=1`?
+
+The docs core API (`public/core-api`) is generated from the `hoshimi` git submodule.
+In Vercel builds, the submodule might not be present, so we skip TypeDoc generation and use the committed static artifacts in `public/core-api` and `public/core-api.json`.
+
+If you update the submodule locally, regenerate these artifacts before pushing:
+
+```bash
+git submodule update --init --recursive
+pnpm core-api:build
+```

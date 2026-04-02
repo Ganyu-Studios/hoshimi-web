@@ -6,7 +6,7 @@
     "core-api:build": "typedoc",
     "build": "next build",
     "dev": "next dev",
-    "prebuild": "pnpm core-api:build",
+    "prebuild": "node scripts/prebuild.mjs",
     "start": "next start",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx",

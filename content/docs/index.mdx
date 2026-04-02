@@ -20,7 +20,7 @@ pnpm add hoshimi
 ## Quick Setup
 
 ```ts twoslash copy wrap title="src/index.ts"
-const gatewaySend = async (_guildId: string, _payload: unknown): Promise<void> => {};
+const gatewaySend = async (guildId: string, payload: unknown): Promise<void> => {  };
 // ---cut---
 import { Hoshimi } from 'hoshimi';
 

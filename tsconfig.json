@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "types": ["@types/node", "@types/react", "@types/react-dom", "@types/mdx"],
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",

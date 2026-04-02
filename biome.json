@@ -1,5 +1,5 @@
 {
-  "root": false,
+  "root": true,
   "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
   "vcs": {
     "enabled": true,
@@ -9,7 +9,16 @@
   "files": {
     "maxSize": 2000000,
     "ignoreUnknown": true,
-    "includes": ["**", "!node_modules", "!.next", "!dist", "!build", "!.source"]
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/build",
+      "!**/.source",
+      "!**/public",
+      "!**/hoshimi"
+    ]
   },
   "formatter": {
     "enabled": true,

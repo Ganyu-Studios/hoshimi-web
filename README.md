@@ -34,6 +34,22 @@ A `source.config.ts` config file has been included, you can customise different 
 
 Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
 
+### Core API generation
+
+The TypeDoc site in `public/core-api` is generated from the `hoshimi` git submodule.
+
+To refresh it after updating the submodule, run:
+
+```bash
+pnpm core-api:build
+```
+
+If the submodule is not present yet, initialize it first:
+
+```bash
+git submodule update --init --recursive
+```
+
 ## Learn More
 
 To learn more about Next.js and Fumadocs, take a look at the following

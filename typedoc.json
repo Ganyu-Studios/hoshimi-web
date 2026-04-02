@@ -1,0 +1,25 @@
+{
+  "entryPoints": ["hoshimi/src/index.ts"],
+  "out": "public/core-api",
+  "json": "public/core-api.json",
+  "tsconfig": "hoshimi/tsconfig.json",
+  "readme": "none",
+  "cleanOutputDir": true,
+  "blockTags": [
+    "@description",
+    "@implements",
+    "@type",
+    "@extends",
+    "@param",
+    "@returns",
+    "@template",
+    "@default",
+    "@example",
+    "@throws",
+    "@deprecated",
+    "@internal",
+    "@readonly",
+    "@author",
+    "@see"
+  ]
+}

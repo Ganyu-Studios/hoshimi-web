@@ -32,19 +32,31 @@ declare const user: { id: string; username: string; avatar: string | null };
 declare const packet: AnyPacket;
 
 manager.init(user);
+
 await manager.updateVoiceState(packet);
 ```
 
 ## Event Hooks
 
 ```ts twoslash copy wrap title="manager-events.ts"
-import { EventNames } from 'hoshimi';
-import type { Hoshimi } from 'hoshimi';
+import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
+
+class Hoshimi extends OriginalManager {
+  on<K extends keyof HoshimiEvents>(
+    event: K,
+    listener: (...args: HoshimiEvents[K]) => void
+  ): this {
+    return this;
+  }
+}
 
 declare const manager: Hoshimi;
+// ---cut---
 
-manager.on(EventNames.NodeReady, (node) => {
-  console.log('Node ready:', node.id);
+import { EventNames } from 'hoshimi';
+
+manager.on(EventNames.NodeReady, (node, retries) => {
+  console.log('Node ready:', node.id, `(retries: ${retries})`);
 });
 
 manager.on(EventNames.PlayerCreate, (player) => {

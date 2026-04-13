@@ -38,6 +38,11 @@ class HoshimiPlayer extends Player {
 }
 
 Structures.Player = (...args) => new HoshimiPlayer(...args);
+
+interface CustomizableStructures {
+  Player: HoshimiPlayer;
+}
+
 ```
 
 ## Multiple Overrides
@@ -52,6 +57,12 @@ class ExtendedLyricsManager extends LyricsManager {}
 Structures.Player = (...args) => new ExtendedPlayer(...args);
 Structures.Node = (...args) => new ExtendedNode(...args);
 Structures.LyricsManager = (...args) => new ExtendedLyricsManager(...args);
+
+interface CustomizableStructures {
+  Player: ExtendedPlayer;
+  Node: ExtendedNode;
+  LyricsManager: ExtendedLyricsManager;
+}
 ```
 
 ## Custom Data Types (Module Augmentation)

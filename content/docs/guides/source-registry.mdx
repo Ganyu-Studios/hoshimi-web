@@ -31,6 +31,13 @@ SourceRegistry.register(
   { source: 'mytts', protocol: 'double-slash' },
   { source: 'rawquery', protocol: 'raw' },
 );
+
+declare module 'hoshimi' {
+  interface CustomizableSources {
+    mysearch: 'my-provider';
+    mytts: 'mytts';
+  }
+}
 ```
 
 ## Resolve and Validate

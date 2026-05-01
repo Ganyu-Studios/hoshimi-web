@@ -19,9 +19,9 @@ Quick links:
 Use `createHoshimi` (or `new Hoshimi`) and pass your gateway sender.
 
 ```ts twoslash copy wrap title="manager-bootstrap.ts"
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+// ---cut---
 import { createHoshimi, SearchSources } from 'hoshimi';
-
-const sendPayload = async (_guildId: string, _payload: unknown): Promise<void> => {};
 
 const manager = createHoshimi({
   sendPayload,

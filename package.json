@@ -20,31 +20,31 @@
     ]
   },
   "dependencies": {
-    "fumadocs-core": "16.7.14",
-    "fumadocs-mdx": "14.2.13",
-    "fumadocs-twoslash": "^3.1.17",
-    "fumadocs-typescript": "^5.2.4",
-    "fumadocs-ui": "16.7.14",
+    "fumadocs-core": "16.8.5",
+    "fumadocs-mdx": "14.3.2",
+    "fumadocs-twoslash": "^3.2.0",
+    "fumadocs-typescript": "^5.2.6",
+    "fumadocs-ui": "16.8.5",
     "hoshimi": "0.3.10-dev-23828974267.0",
-    "lucide-react": "^1.8.0",
-    "next": "16.2.3",
+    "lucide-react": "^1.14.0",
+    "next": "16.2.4",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.11",
-    "@tailwindcss/postcss": "^4.2.2",
+    "@biomejs/biome": "^2.4.13",
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/mdx": "^2.0.13",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "postcss": "^8.5.9",
-    "tailwindcss": "^4.2.2",
+    "postcss": "^8.5.13",
+    "tailwindcss": "^4.2.4",
     "typedoc": "^0.28.19",
-    "typescript": "^6.0.2"
+    "typescript": "^6.0.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

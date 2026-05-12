@@ -1,10 +1,9 @@
 ---
-title: Search and Sources
-description: Query tracks safely with manager/player search and source selection.
+title: Searching & Sources
+description: Query tracks from different sources and handle search results.
 ---
 
-This guide documents how search works in the real API surface.
-Use it to choose sources intentionally and branch correctly by load type.
+This guide covers how to search for tracks from the manager or player level, and how to handle different result types.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
@@ -14,11 +13,10 @@ Quick links:
 - [SearchOptions](/core-api/interfaces/SearchOptions.html)
 - [SearchSources](/core-api/enums/SearchSources.html)
 - [LoadType](/core-api/enums/LoadType.html)
-- [QueryResult](/core-api/interfaces/QueryResult.html)
 
 ## Search from Manager
 
-Use manager search when you want to resolve results before creating/using a player.
+Use manager search to resolve tracks before creating or using a player.
 
 ```ts twoslash copy wrap title="manager-search.ts"
 import { SearchSources } from 'hoshimi';
@@ -41,7 +39,7 @@ console.log(result.tracks.length);
 
 ## Search from Player
 
-Use player search in command handlers where the player already exists.
+Use player search in command handlers when the player already exists.
 
 ```ts twoslash copy wrap title="player-search.ts"
 import { LoadType } from 'hoshimi';
@@ -66,8 +64,18 @@ if (result.loadType === LoadType.Track || result.loadType === LoadType.Search) {
 }
 ```
 
-## Source Strategy
+## Handling Load Types
 
-- Set a default source in manager options (`defaultSearchSource`).
-- Override per query with `source` in `SearchOptions` when needed.
-- Always branch by `loadType` (`Track`, `Search`, `Playlist`, `Empty`, `Error`).
+Always branch by `loadType` to handle different search outcomes:
+
+- **`Track`**: Single track found.
+- **`Playlist`**: Multiple tracks in a playlist.
+- **`Search`**: Search results (multiple candidate tracks).
+- **`Empty`**: No results found.
+- **`Error`**: Search failed (provider error or network issue).
+
+## Source Configuration
+
+- Set a default source in manager options (`defaultSearchSource`) during bootstrap.
+- Override per query with the `source` parameter in `SearchOptions` when needed.
+- Build source identifiers using [Source Registry](/docs/guides/source-registry) for custom providers.

@@ -1,51 +1,34 @@
 ---
 title: Player Lifecycle
-description: End-to-end player flow, search, queue, play, pause, skip, seek and destroy.
+description: Control playback with search, queue, play, pause, skip, seek, and destroy.
 ---
 
-This page documents the practical playback lifecycle used by real commands.
-Use it as the baseline sequence for play, queue control and teardown logic.
+This guide covers the complete playback lifecycle: searching for tracks, managing the queue, runtime controls, and teardown.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
 Quick links:
 - [Player](/core-api/classes/Player.html)
+- [Player.search](/core-api/classes/Player.html#search)
+- [Player.queue](/core-api/classes/Player.html#queue)
 - [Player.play](/core-api/classes/Player.html#play)
 - [Player.setPaused](/core-api/classes/Player.html#setpaused)
 - [Player.skip](/core-api/classes/Player.html#skip)
 - [Player.seek](/core-api/classes/Player.html#seek)
-- [Player.setLoop](/core-api/classes/Player.html#setloop)
 - [LoopMode](/core-api/enums/LoopMode.html)
 
-## Create or Reuse
+## Search & Queue
 
-```ts twoslash copy wrap title="create-player.ts"
-import type { Hoshimi } from 'hoshimi';
+Search for tracks and add them to the queue.
 
-declare const manager: Hoshimi;
-declare const guildId: string;
-declare const voiceId: string;
-declare const textId: string;
-
-const player = manager.createPlayer({
-  guildId,
-  voiceId,
-  textId,
-  volume: 100,
-  selfDeaf: true,
-});
-```
-
-## Search and Play
-
-```ts twoslash copy wrap title="search-and-play.ts"
+```ts twoslash copy wrap title="search-and-queue.ts"
 import { LoadType } from 'hoshimi';
 import type { Player } from 'hoshimi';
 
 declare const player: Player;
 
 const result = await player.search({
-  query: 'Never Gonna Give You Up',
+  query: 'Daft Punk - Harder Better Faster Stronger',
   requester: {
     id: '123',
     username: 'demo-user',
@@ -53,47 +36,57 @@ const result = await player.search({
 });
 
 if (result.loadType === LoadType.Track || result.loadType === LoadType.Search) {
-  const track = result.tracks[0];
-  await player.queue.add(track);
-
-  if (!player.isPlaying()) {
-    await player.play();
-  }
+  await player.queue.add(result.tracks[0]);
 }
 ```
 
-## Runtime Controls
+## Playback Control
 
-```ts twoslash copy wrap title="runtime-controls.ts"
+Play, pause, skip, seek, adjust volume, and set loop modes.
+
+```ts twoslash copy wrap title="playback-controls.ts"
 import { LoopMode } from 'hoshimi';
 import type { Player } from 'hoshimi';
 
 declare const player: Player;
 
-await player.setPaused(true);
-await player.setPaused(false);
+// Connect and play
+if (!player.connected) await player.connect();
+if (!player.isPlaying()) await player.play();
 
-await player.seek(30_000);
-await player.skip({ to: 1 });
-await player.setVolume(150);
+// Control playback
+await player.setPaused(true);    // pause
+await player.setPaused(false);   // resume
+await player.seek(30_000);       // seek to 30s
+await player.skip({ to: 1 });    // skip to next
+await player.setVolume(150);     // 150% volume
 
-player.setLoop(LoopMode.Queue);
+// Loop modes
+player.setLoop(LoopMode.Queue);  // loop entire queue
+player.setLoop(LoopMode.Track);  // loop current track
+player.setLoop(LoopMode.Off);   // disable looping
 ```
 
 ## Disconnect vs Destroy
 
-```ts twoslash copy wrap title="end-of-session.ts"
+Disconnection stops playback but keeps the player. Destruction removes the player entirely.
+
+```ts twoslash copy wrap title="session-teardown.ts"
 import { DestroyReasons } from 'hoshimi';
 import type { Player } from 'hoshimi';
 
 declare const player: Player;
 
+// Disconnect from voice (stops playback, keeps player)
 await player.disconnect();
+
+// Destroy player (cleanup, removal)
 await player.destroy(DestroyReasons.Stop);
 ```
 
-## State Gotchas
+## Important Notes
 
-- [`player.connected`](/core-api/classes/Player.html#connected) means voice connection state, not playback.
-- [`player.playing`](/core-api/classes/Player.html#playing) and [`player.paused`](/core-api/classes/Player.html#paused) are not the same signal.
-- [`player.position`](/core-api/classes/Player.html#position) is computed state; use [`seek()`](/core-api/classes/Player.html#seek) to move position.
+- **`player.connected`**: Voice connection state, not playback state.
+- **`player.playing` vs `player.paused`**: Different signals; use both to understand player state.
+- **`player.position`**: Computed value; use `seek()` to move the playback position.
+- **`player.isPlaying()`**: Check before calling `play()` to avoid redundant operations.

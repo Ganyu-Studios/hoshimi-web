@@ -1,10 +1,9 @@
 ---
-title: Filters and Lyrics
-description: Apply audio filters and manage lyric subscriptions safely.
+title: Audio Features
+description: Apply filters and manage lyrics subscriptions.
 ---
 
-This page reflects command-level patterns used in the example bot.
-It helps you keep filter state and lyric subscriptions synchronized safely.
+This guide covers audio filters and lyrics functionality, with patterns for managing subscriptions and cleanup.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
@@ -12,15 +11,15 @@ Quick links:
 - [FilterManager](/core-api/classes/FilterManager.html)
 - [FilterManager.setNightcore](/core-api/classes/FilterManager.html#setnightcore)
 - [FilterManager.setKaraoke](/core-api/classes/FilterManager.html#setkaraoke)
-- [FilterManager.reset](/core-api/classes/FilterManager.html#reset)
 - [LyricsManager](/core-api/classes/LyricsManager.html)
-- [LyricsManager.current](/core-api/classes/LyricsManager.html#current)
 - [LyricsManager.subscribe](/core-api/classes/LyricsManager.html#subscribe)
 - [LyricsManager.unsubscribe](/core-api/classes/LyricsManager.html#unsubscribe)
 
-## Enable and Reset Filters
+## Audio Filters
 
-```ts twoslash copy wrap title="filters-basic.ts"
+Apply built-in filters or reset them. Common presets include nightcore, karaoke, and more.
+
+```ts twoslash copy wrap title="audio-filters.ts"
 import type { Player } from 'hoshimi';
 
 declare const player: Player;
@@ -38,12 +37,15 @@ await player.filterManager.setKaraoke({
   filterWidth: 100,
 });
 
+// Reset all filters
 await player.filterManager.reset();
 ```
 
-## Lyrics Flow
+## Lyrics Subscription
 
-```ts twoslash copy wrap title="lyrics-flow.ts"
+Subscribe to lyrics for the current track. Handle errors gracefully.
+
+```ts twoslash copy wrap title="lyrics-subscription.ts"
 import type { Player } from 'hoshimi';
 
 declare const player: Player;
@@ -53,12 +55,13 @@ const lyrics = await player.lyrics.current();
 if (lyrics && !('error' in lyrics)) {
   await player.data.set('lyrics', lyrics);
   await player.data.set('enabledLyrics', true);
-
   await player.lyrics.subscribe();
 }
 ```
 
-## Cleanup Pattern
+## Cleanup on Session End
+
+Remove subscriptions and clear stored state when playback stops or the player is destroyed.
 
 ```ts twoslash copy wrap title="lyrics-cleanup.ts"
 import type { Player } from 'hoshimi';
@@ -79,9 +82,9 @@ if (lyricsId) {
 }
 ```
 
-## Common Pitfalls
+## Important Notes
 
-- [`player.filterManager.plugin`](/core-api/classes/FilterManager.html#plugin) is the Lavalink plugin filter manager.
-- [`player.filterManager.dspx`](/core-api/classes/FilterManager.html#dspx) is the DSPX plugin filter manager.
-- Always reset filters when switching presets aggressively.
-- For lyrics, treat provider errors as expected runtime cases and fallback gracefully.
+- **Filter managers**: `plugin` is the Lavalink plugin filter manager; `dspx` is the DSPX plugin filter manager.
+- **Filter conflicts**: Always reset filters when switching presets aggressively.
+- **Lyrics errors**: Treat provider errors as expected runtime cases and fallback gracefully.
+- **Cleanup timing**: Clear lyrics on `PlayerDestroy` and `QueueEnd` to prevent stale subscriptions.

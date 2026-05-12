@@ -1,44 +1,22 @@
 ---
-title: Events and Gateway
-description: Ready/raw integration and lavalink event handlers for stable runtime behavior.
+title: Events & Packet Forwarding
+description: Handle Lavalink events and maintain voice state consistency.
 ---
 
-This page focuses on event wiring and cleanup behavior.
-It is useful as a checklist to avoid stale voice state and dangling listeners.
+This guide covers event wiring and the production checklist to ensure clean state during playback and reconnects.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
 Quick links:
 - [HoshimiEvents](/core-api/interfaces/HoshimiEvents.html)
-- [Hoshimi.updateVoiceState](/core-api/classes/Hoshimi.html#updatevoicestate)
 - [EventNames](/core-api/enums/EventNames.html)
 - [VoicePacket](/core-api/interfaces/VoicePacket.html)
 
-## Ready + Raw Events
+## Listening to Events
 
-```ts twoslash copy wrap title="gateway-events.ts"
-import type {
-  ChannelDeletePacket,
-  Hoshimi,
-  VoicePacket,
-  VoiceServer,
-  VoiceState,
-} from 'hoshimi';
+Subscribe to manager events using `EventNames` constants. Key events include node readiness, player creation, and queue completion.
 
-type AnyPacket = VoicePacket | VoiceServer | VoiceState | ChannelDeletePacket;
-
-declare const manager: Hoshimi;
-declare const user: { id: string; username: string; avatar: string | null };
-declare const packet: AnyPacket;
-
-manager.init(user);
-
-await manager.updateVoiceState(packet);
-```
-
-## Event Hooks
-
-```ts twoslash copy wrap title="manager-events.ts"
+```ts twoslash copy wrap title="event-listeners.ts"
 import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
 
 class Hoshimi extends OriginalManager {
@@ -50,27 +28,34 @@ class Hoshimi extends OriginalManager {
   }
 }
 
-declare const manager: Hoshimi;
 // ---cut---
 
 import { EventNames } from 'hoshimi';
 
+declare const manager: Hoshimi;
+
 manager.on(EventNames.NodeReady, (node, retries) => {
-  console.log('Node ready:', node.id, `(retries: ${retries})`);
+  console.log(`Node ${node.id} ready (retry #${retries})`);
 });
 
 manager.on(EventNames.PlayerCreate, (player) => {
-  console.log('Player created:', player.guildId);
+  console.log(`Player created for guild ${player.guildId}`);
 });
 
 manager.on(EventNames.QueueEnd, (player) => {
-  console.log('Queue ended:', player.guildId);
+  console.log(`Queue ended for guild ${player.guildId}`);
+});
+
+manager.on(EventNames.PlayerDestroy, (player) => {
+  console.log(`Player destroyed for guild ${player.guildId}`);
 });
 ```
 
 ## Production Checklist
 
-- Call [`init()`](/core-api/classes/Hoshimi.html#init) once after client ready.
-- Forward all raw voice packets to [`updateVoiceState()`](/core-api/classes/Hoshimi.html#updatevoicestate).
-- Persist key session/player fields in `PlayerUpdate`.
-- Clear message/lyrics/session state on `QueueEnd` and `PlayerDestroy`.
+Ensure consistent state across your application:
+
+- **Initialization**: Call `manager.init(botUser)` once after bot ready event.
+- **Packet forwarding**: Forward all raw voice packets to `manager.updateVoiceState()` (see [Setup & Integration](/docs/getting-started/setup-and-integration#step-3-forward-voice-packets)).
+- **Session persistence**: On `PlayerUpdate` events, save relevant player state (current track, position, loop mode, volume).
+- **Cleanup**: On `QueueEnd` and `PlayerDestroy`, clear transient storage (message IDs, lyrics subscriptions, feature flags).

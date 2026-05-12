@@ -1,10 +1,9 @@
 ---
-title: Custom Structures
-description: Override built-in structures (Player, Node, LyricsManager) safely.
+title: Custom Structures & Types
+description: Override built-in structures and use inferred structure types.
 ---
 
-Hoshimi allows replacing default classes through `Structures`.
-Use this when you need project-specific behavior without forking core internals.
+Hoshimi allows you to replace default classes with custom implementations. This guide covers both overriding structures and using their inferred types.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
@@ -13,39 +12,31 @@ Quick links:
 - [Player](/core-api/classes/Player.html)
 - [Node](/core-api/classes/Node.html)
 - [LyricsManager](/core-api/classes/LyricsManager.html)
-- [CustomizableStructures](/core-api/interfaces/CustomizableStructures.html)
-
-Structure type links:
-- [PlayerStructure](/core-api/types/PlayerStructure.html)
-- [NodeStructure](/core-api/types/NodeStructure.html)
-- [QueueStructure](/core-api/types/QueueStructure.html)
-- [TrackStructure](/core-api/types/TrackStructure.html)
-- [UnresolvedTrackStructure](/core-api/types/UnresolvedTrackStructure.html)
-- [LyricsManagerStructure](/core-api/types/LyricsManagerStructure.html)
-
-Related registry:
-- [SourceRegistry](/core-api/variables/SourceRegistry.html)
+- [InferCustomStructure](/core-api/types/InferCustomStructure.html)
 
 ## Basic Override Pattern
 
-```ts twoslash copy wrap title="override-structures.ts"
+Create a custom subclass and assign it to the `Structures` factory.
+
+```ts twoslash copy wrap title="custom-player.ts"
 import { Player, Structures } from 'hoshimi';
 
-class HoshimiPlayer extends Player {
+class CustomPlayer extends Player {
   public isDJModeEnabled(): boolean {
     return this.volume > 120;
   }
 }
 
-Structures.Player = (...args) => new HoshimiPlayer(...args);
+Structures.Player = (...args) => new CustomPlayer(...args);
 
 interface CustomizableStructures {
-  Player: HoshimiPlayer;
+  Player: CustomPlayer;
 }
-
 ```
 
 ## Multiple Overrides
+
+Override several structures at once for comprehensive customization.
 
 ```ts twoslash copy wrap title="multi-override.ts"
 import { LyricsManager, Node, Player, Structures } from 'hoshimi';
@@ -65,9 +56,28 @@ interface CustomizableStructures {
 }
 ```
 
-## Custom Data Types (Module Augmentation)
+## Using Structure Types
 
-```ts twoslash copy wrap title="custom-types.ts"
+The `*Structure` type aliases represent the final instance types. Use them in function signatures for flexibility.
+
+```ts twoslash copy wrap title="structure-types-usage.ts"
+import type { PlayerStructure, TrackStructure } from 'hoshimi';
+
+function attachPlayerFeatures(player: PlayerStructure): void {
+  // Works with default Player or any custom Player replacement
+  console.log(`Guild: ${player.guildId}`);
+}
+
+function inspectTrack(track: TrackStructure): string {
+  return track.info.title;
+}
+```
+
+## Module Augmentation for Custom Data
+
+Extend built-in structures with custom properties via module augmentation.
+
+```ts twoslash copy wrap title="custom-data-types.ts"
 import type { LyricsResult } from 'hoshimi';
 
 declare module 'hoshimi' {
@@ -89,6 +99,8 @@ declare module 'hoshimi' {
 
 ## Best Practices
 
-- Override structures once during bootstrap.
-- Keep constructor signatures unchanged.
-- Add narrow, domain-specific methods instead of rewriting core flow.
+- Override structures once during bootstrap (before creating any managers).
+- Keep constructor signatures unchanged to maintain compatibility.
+- Add narrow, domain-specific methods instead of rewriting core flow logic.
+- Use `*Structure` types in function signatures to avoid coupling to concrete classes.
+- Keep extensions strongly typed after overrides with `InferCustomStructure`.

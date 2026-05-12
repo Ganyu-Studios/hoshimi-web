@@ -1,10 +1,9 @@
 ---
-title: Node Operations
-description: Work with Node, NodeManager and REST helpers for resilient playback.
+title: Node Management
+description: Select nodes, check health, and perform low-level node operations.
 ---
 
-Use this page to understand node selection, node health and decode/REST operations.
-Apply these patterns to reduce routing errors and improve failover behavior.
+This guide covers node selection strategies, health checks, and operations like decode and REST calls.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
@@ -12,13 +11,14 @@ Quick links:
 - [Node](/core-api/classes/Node.html)
 - [NodeManager](/core-api/classes/NodeManager.html)
 - [NodeManager.getLeastUsed](/core-api/classes/NodeManager.html#getleastused)
-- [Node.search](/core-api/classes/Node.html#search)
 - [Node.decode](/core-api/classes/Node.html#decode)
 - [Rest](/core-api/classes/Rest.html)
 
-## Select Nodes Safely
+## Select Nodes
 
-```ts twoslash copy wrap title="node-select.ts"
+Use `getLeastUsed()` for automatic load balancing, or access nodes directly.
+
+```ts twoslash copy wrap title="node-selection.ts"
 import type { Hoshimi } from 'hoshimi';
 
 declare const manager: Hoshimi;
@@ -29,14 +29,16 @@ if (!leastUsed) {
   throw new Error('No available nodes');
 }
 
-console.log(leastUsed.id);
-console.log(leastUsed.ready);
-console.log(leastUsed.penalties);
+console.log(`Using node: ${leastUsed.id}`);
+console.log(`Ready: ${leastUsed.ready}`);
+console.log(`Penalties: ${leastUsed.penalties}`);
 ```
 
 ## Decode Tracks
 
-```ts twoslash copy wrap title="node-decode.ts"
+Decode Lavalink track data to extract metadata.
+
+```ts twoslash copy wrap title="track-decoding.ts"
 import type { Node } from 'hoshimi';
 
 declare const node: Node;
@@ -48,19 +50,22 @@ console.log(single.info.title);
 console.log(many.length);
 ```
 
-## REST Utility
+## REST Operations
 
-```ts twoslash copy wrap title="rest-ops.ts"
+Access low-level REST endpoints for advanced use cases.
+
+```ts twoslash copy wrap title="rest-operations.ts"
 import type { Node } from 'hoshimi';
 
 declare const node: Node;
 
 const players = await node.rest.getPlayers();
-console.log(players.length);
+console.log(`Active players: ${players.length}`);
 ```
 
-## Operational Notes
+## Best Practices
 
 - Prefer `getLeastUsed()` for default load balancing.
-- Validate `node.ready` before forcing node-specific operations.
-- Use `node.rest` for low-level operations, and manager/player abstractions for normal flows.
+- Always check `node.ready` before forcing node-specific operations.
+- Use `node.rest` only for low-level operations; prefer manager/player abstractions for typical flows.
+- Validate node health before critical operations.

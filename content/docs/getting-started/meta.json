@@ -1,10 +1,5 @@
 {
   "title": "Getting Started",
   "defaultOpen": true,
-  "pages": [
-    "quick-start",
-    "bot-integration",
-    "events-gateway",
-    "player-lifecycle"
-  ]
+  "pages": ["setup-and-integration", "events-gateway", "player-lifecycle"]
 }

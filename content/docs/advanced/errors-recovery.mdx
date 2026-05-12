@@ -1,10 +1,9 @@
 ---
-title: Errors and Recovery
-description: Handle runtime failures with typed errors and recovery strategies.
+title: Error Handling & Recovery
+description: Handle typed errors and implement recovery patterns.
 ---
 
-This guide covers practical error handling based on exported error classes.
-It focuses on predictable fallbacks, typed guards and recovery-safe command flow.
+This guide covers Hoshimi's error classes, typed error handling, and patterns for graceful recovery.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
@@ -19,7 +18,9 @@ Quick links:
 
 ## Typed Error Handling
 
-```ts twoslash copy wrap title="typed-errors.ts"
+Use `instanceof` checks to handle different error categories appropriately.
+
+```ts twoslash copy wrap title="error-handling.ts"
 import {
   ManagerError,
   NodeError,
@@ -31,7 +32,7 @@ import {
 } from 'hoshimi';
 
 try {
-  // any operation that may fail
+  // Any Hoshimi operation that may fail
 } catch (error) {
   if (error instanceof OptionError) {
     console.error('Invalid options:', error.message);
@@ -42,19 +43,35 @@ try {
   } else if (error instanceof PlayerError) {
     console.error('Playback error:', error.message);
   } else if (error instanceof ResolveError) {
-    console.error('Track resolve error:', error.message);
+    console.error('Track resolution failed:', error.message);
   } else if (error instanceof RestError) {
     console.error('Lavalink REST error:', error.message);
   } else if (error instanceof StorageError) {
     console.error('Storage adapter error:', error.message);
+  } else {
+    console.error('Unknown error:', error);
   }
 }
 ```
 
+## Error Categories
+
+| Error Type | Cause | Recovery |
+|-----------|-------|----------|
+| **OptionError** | Invalid configuration | Fix options, restart |
+| **ManagerError** | Invalid manager state | Check manager initialization |
+| **NodeError** | Node connection/status | Retry, fallback to another node |
+| **PlayerError** | Invalid player operation | Validate player state |
+| **ResolveError** | Track lookup failed | Try different search query |
+| **RestError** | Lavalink HTTP error | Retry with backoff |
+| **StorageError** | Adapter operation failed | Check storage backend |
+
 ## Recovery Checklist
 
-- Before commands: check manager health (`isUseable`).
-- Before player operations: verify voice channel and player existence.
-- For queue operations: guard with `queue.isEmpty()`.
-- On reconnect-sensitive flows: persist player/session data after updates.
-- On teardown (`QueueEnd`/`PlayerDestroy`): clear transient storage (lyrics/message IDs).
+Apply these patterns to ensure resilient playback:
+
+- **Before commands**: Check `manager.isUseable()` for quick health validation.
+- **Before player operations**: Verify voice channel access and player existence.
+- **Queue operations**: Guard with `queue.isEmpty()` before shifting/accessing.
+- **Session persistence**: Save player/queue state after successful updates.
+- **Cleanup**: On `QueueEnd` and `PlayerDestroy`, clear transient storage (lyrics IDs, message refs).

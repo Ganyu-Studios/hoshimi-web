@@ -1,24 +1,22 @@
 ---
 title: Source Registry
-description: Register and resolve custom search sources with SourceRegistry.
+description: Register custom search sources and build identifiers for providers.
 ---
 
-This page explains how to register custom source aliases and build valid lavalink identifiers.
-Use it when your project needs provider-specific search prefixes or custom source names.
+Use Source Registry to add custom search providers and build valid Lavalink identifiers for your search queries.
 
 Type reference: [Core API (TypeDoc)](/core-api/index.html)
 
 Quick links:
 - [SourceRegistry](/core-api/variables/SourceRegistry.html)
-- [SearchSources](/core-api/enums/SearchSources.html)
-- [SearchSource](/core-api/types/SearchSource.html)
-- [SearchSourceKey](/core-api/types/SearchSourceKey.html)
 - [SourceRegistration](/core-api/interfaces/SourceRegistration.html)
-- [SourceProtocol](/core-api/types/SourceProtocol.html)
+- [SearchSources](/core-api/enums/SearchSources.html)
 
-## Register Sources
+## Register Custom Sources
 
-```ts twoslash copy wrap title="source-registry-register.ts"
+Register new source aliases during app bootstrap.
+
+```ts twoslash copy wrap title="register-sources.ts"
 import { SourceRegistry } from 'hoshimi';
 
 SourceRegistry.register({
@@ -40,9 +38,11 @@ declare module 'hoshimi' {
 }
 ```
 
-## Resolve and Validate
+## Resolve & Validate
 
-```ts twoslash copy wrap title="source-registry-resolve.ts"
+Check if a source is registered and retrieve its configuration.
+
+```ts twoslash copy wrap title="resolve-sources.ts"
 import { SourceRegistry } from 'hoshimi';
 
 const source = SourceRegistry.resolve('my-provider');
@@ -54,18 +54,21 @@ console.log(source, exists, all);
 
 ## Build Identifiers
 
-```ts twoslash copy wrap title="source-registry-identifiers.ts"
+Create properly formatted identifiers for different protocol types.
+
+```ts twoslash copy wrap title="build-identifiers.ts"
 import { SourceRegistry } from 'hoshimi';
 
-const a = SourceRegistry.createIdentifier('mysearch', 'Daft Punk');
-const b = SourceRegistry.createIdentifier('mytts', 'hello world');
-const c = SourceRegistry.createIdentifier('rawquery', 'ytsearch:already-prefixed');
+const colon = SourceRegistry.createIdentifier('mysearch', 'Daft Punk');
+const doubleSlash = SourceRegistry.createIdentifier('mytts', 'hello world');
+const raw = SourceRegistry.createIdentifier('rawquery', 'ytsearch:already-prefixed');
 
-console.log(a, b, c);
+console.log(colon, doubleSlash, raw);
 ```
 
-## Notes
+## Best Practices
 
-- Use `register()` during app bootstrap.
-- Prefer `resolve()` before search if source can be user-provided.
-- Keep protocol choice consistent per source to avoid query format drift.
+- Register sources during application bootstrap.
+- Use `resolve()` before searching if the source can be user-provided.
+- Keep protocol choice consistent per source to maintain query format stability.
+- Use module augmentation to add custom sources to TypeScript's `CustomizableSources` interface.

@@ -3,13 +3,23 @@ title: Introduction
 description: A typed Lavalink v4 client for modern music bots.
 ---
 
-Hoshimi is a TypeScript-first Lavalink v4 client built with strict typing, clean architecture, and extensibility in mind.
+Hoshimi is a **TypeScript-first Lavalink v4 client** built with strict typing, clean
+architecture, and extensibility in mind — easy to use and always up to date.
+
+<Callout type="info" title="New to Lavalink?">
+  Lavalink is a standalone audio-sending node. Hoshimi talks to it over REST and
+  WebSocket and hands you a fully typed API, so you build music bots without
+  touching the wire protocol yourself.
+</Callout>
 
 ## Why Hoshimi?
 
-- **Type-safe**: Comprehensive typings and type guards prevent runtime errors.
-- **Modular**: Separate concerns for nodes, players, queues, and storage—override safely.
-- **Scalable**: Built for bots handling multiple nodes, resumable sessions, and persistence.
+<Cards>
+  <Card title="Type-safe" description="Comprehensive typings and type guards catch mistakes before they ship — not at runtime." />
+  <Card title="Modular" description="Nodes, players, queues and storage are separate concerns you can override safely." />
+  <Card title="Batteries included" description="Autoplay (YouTube & Spotify), live lyrics, audio filters and session resumption out of the box." />
+  <Card title="Scalable" description="Designed for bots running multiple nodes with resumable sessions and persistence." />
+</Cards>
 
 ## Install
 
@@ -17,7 +27,12 @@ Hoshimi is a TypeScript-first Lavalink v4 client built with strict typing, clean
 pnpm add hoshimi
 ```
 
-## First Steps
+Hoshimi runs on **Node.js 22+**, **Bun 1.3+**, or **Deno 2.5+** (unstable).
+
+## First steps
+
+Create the manager with your node list and a `sendPayload` function that forwards
+voice updates through your Discord gateway connection.
 
 ```ts twoslash copy wrap title="src/index.ts"
 const gatewaySend = async (guildId: string, payload: unknown): Promise<void> => {  };
@@ -38,6 +53,11 @@ const hoshimi = new Hoshimi({
 });
 ```
 
-## Next
+## Where to go next
 
-Start with [Setup & Integration](/docs/getting-started/setup-and-integration) to wire your bot, then explore the guides for deeper patterns.
+<Cards>
+  <Card title="Setup & Integration" href="/docs/getting-started/setup-and-integration" description="Wire Hoshimi into your bot's lifecycle and forward voice packets." />
+  <Card title="Player Lifecycle" href="/docs/getting-started/player-lifecycle" description="Search, queue, play, pause, skip, seek and tear down players." />
+  <Card title="Guides" href="/docs/guides/search-sources" description="Sources, track resolution, nodes, queues, persistence and audio features." />
+  <Card title="API Reference" href="/docs/api" description="Every public class, function, interface and type — generated from source." />
+</Cards>

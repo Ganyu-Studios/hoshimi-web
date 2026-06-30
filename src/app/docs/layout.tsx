@@ -12,6 +12,9 @@ import {
   Variable as VariableIcon,
 } from "lucide-react";
 import { type CSSProperties, createElement, type ReactNode } from "react";
+import { NavTabsRail } from "@/components/docs/nav-tabs-rail";
+import { ReadingProgress } from "@/components/docs/reading-progress";
+import { SidebarActiveRail } from "@/components/docs/sidebar-active-rail";
 import {
   type ApiEntry,
   type ApiKind,
@@ -23,7 +26,6 @@ import {
   apiKindSlug,
   apiKindStyles,
 } from "@/lib/api-reference/kinds";
-import { SidebarActiveRail } from "@/components/docs/sidebar-active-rail";
 import { baseOptions } from "@/lib/layout.shared";
 import { source } from "@/lib/source";
 
@@ -173,7 +175,9 @@ export default function Layout({ children }: LayoutProps<"/docs">) {
 
   return (
     <div className="hoshimi-docs">
+      <ReadingProgress />
       <SidebarActiveRail />
+      <NavTabsRail />
       <DocsLayout
         tree={tree}
         tabMode="navbar"

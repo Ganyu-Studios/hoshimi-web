@@ -5,7 +5,16 @@ import {
   DocsPage,
   DocsTitle,
 } from "fumadocs-ui/layouts/notebook/page";
-import { Box, ExternalLink, Wrench } from "lucide-react";
+import {
+  Box,
+  ExternalLink,
+  Component as InterfaceIcon,
+  ListTree,
+  Sigma,
+  SquareFunction,
+  Variable as VariableIcon,
+  Wrench,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -135,6 +144,26 @@ function toc(items: Array<{ title: string; url: string; depth?: number }>) {
   }));
 }
 
+const apiKindIcons: Record<ApiKind, typeof Box> = {
+  Class: Box,
+  Function: SquareFunction,
+  Interface: InterfaceIcon,
+  TypeAlias: Sigma,
+  Enum: ListTree,
+  Variable: VariableIcon,
+};
+
+function KindIcon({ kind, className }: { kind: ApiKind; className?: string }) {
+  const Icon = apiKindIcons[kind];
+  return (
+    <Icon
+      className={className ?? "size-4 shrink-0"}
+      style={{ color: apiKindStyles[kind].iconColor }}
+      aria-hidden
+    />
+  );
+}
+
 function KindBadge({ kind }: { kind: ApiKind }) {
   return (
     <span
@@ -176,7 +205,10 @@ function ApiKindCard({ kind }: { kind: ApiKind }) {
       className="hoshimi-lift group rounded-lg border border-fd-border bg-fd-background p-4 hover:border-fd-primary/40 hover:bg-fd-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
     >
       <div className="flex items-start justify-between gap-4">
-        <h2 className="text-base font-semibold text-fd-foreground">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-fd-foreground">
+          <span className="inline-flex size-7 items-center justify-center rounded-lg border border-fd-border bg-fd-secondary/60 transition-colors group-hover:border-fd-primary/30">
+            <KindIcon kind={kind} />
+          </span>
           {apiKindLabel[kind]}
         </h2>
         <div className="flex shrink-0 items-center gap-1.5">
@@ -1117,8 +1149,9 @@ function ApiBreadcrumb({ entry }: { entry: ApiEntryDetail }) {
       </span>
       <Link
         href={kindHref(entry.kind)}
-        className="rounded-sm transition-colors hover:text-fd-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
+        className="inline-flex items-center gap-1.5 rounded-sm transition-colors hover:text-fd-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
       >
+        <KindIcon kind={entry.kind} className="size-3.5 shrink-0" />
         {apiKindLabel[entry.kind]}
       </Link>
       <span aria-hidden className="text-fd-border">

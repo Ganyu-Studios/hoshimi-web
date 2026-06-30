@@ -43,7 +43,7 @@ export default function HomePage() {
             <ArrowRight className="size-4" />
           </Link>
           <Link
-            href="/core-api/index.html"
+            href="/docs/api"
             className="inline-flex items-center gap-2 rounded-xl border border-cyan-700/25 bg-white/70 px-5 py-3 text-sm font-medium text-cyan-950 transition hover:bg-white dark:border-cyan-100/25 dark:bg-white/5 dark:text-cyan-50 dark:hover:bg-white/10"
           >
             Explore Public API

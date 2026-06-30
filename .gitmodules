@@ -1,4 +1,0 @@
-[submodule "hoshimi"]
-	path = hoshimi
-	url = https://github.com/Ganyu-Studios/Hoshimi.git
-	branch = lib

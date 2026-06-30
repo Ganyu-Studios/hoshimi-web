@@ -5,14 +5,14 @@ description: Manage queues and implement custom storage adapters.
 
 This guide covers queue operations and patterns for persisting queue state across restarts using storage adapters.
 
-Type reference: [Core API (TypeDoc)](/core-api/index.html)
+Type reference: [API Reference](/docs/api)
 
 Quick links:
-- [Queue](/core-api/classes/Queue.html)
-- [Queue.add](/core-api/classes/Queue.html#add)
-- [Queue.shift](/core-api/classes/Queue.html#shift)
-- [PlayerStorageAdapter](/core-api/classes/PlayerStorageAdapter.html)
-- [QueueStorageAdapter](/core-api/classes/QueueStorageAdapter.html)
+- [Queue](/docs/api/Queue.Class)
+- [Queue.add](/docs/api/Queue.Class#member-Method-add)
+- [Queue.shift](/docs/api/Queue.Class#member-Method-shift)
+- [PlayerStorageAdapter](/docs/api/PlayerStorageAdapter.Class)
+- [QueueStorageAdapter](/docs/api/QueueStorageAdapter.Class)
 
 ## Queue Operations
 
@@ -46,7 +46,8 @@ By default, queues and player data are stored in memory.
 ```ts twoslash copy wrap title="memory-adapters.ts"
 import { PlayerMemoryStorage, QueueMemoryStorage } from 'hoshimi';
 
-const playerStorage = new PlayerMemoryStorage();
+// The player storage is scoped to a guild.
+const playerStorage = new PlayerMemoryStorage('123456789012345678');
 const queueStorage = new QueueMemoryStorage();
 
 playerStorage.namespace = 'hoshimiplayer';

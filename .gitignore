@@ -24,3 +24,9 @@ yarn-error.log*
 .env*.local
 .vercel
 next-env.d.ts
+
+# api reference (generated from hoshimi declarations on install/build)
+/src/lib/api-reference/generated.ts
+/src/lib/api-reference/details.ts
+/src/lib/api-reference/details/
+/src/lib/api-reference/search.ts

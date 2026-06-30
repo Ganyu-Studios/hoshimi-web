@@ -176,3 +176,179 @@ h6 {
   background-clip: text;
   color: transparent;
 }
+
+/* ---------------------------------------------------------------------------
+   Docs chrome: entrance animations + active-section indicator
+   --------------------------------------------------------------------------- */
+
+@keyframes hoshimi-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes hoshimi-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hoshimi-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Staggered reveal for the major blocks of an API view. */
+.hoshimi-animate-in > * {
+  animation: hoshimi-fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hoshimi-animate-in > *:nth-child(1) {
+  animation-delay: 0.03s;
+}
+.hoshimi-animate-in > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.hoshimi-animate-in > *:nth-child(3) {
+  animation-delay: 0.17s;
+}
+.hoshimi-animate-in > *:nth-child(4) {
+  animation-delay: 0.24s;
+}
+.hoshimi-animate-in > *:nth-child(5) {
+  animation-delay: 0.31s;
+}
+.hoshimi-animate-in > *:nth-child(n + 6) {
+  animation-delay: 0.38s;
+}
+
+/* Gentle second-level reveal for cards within a grid, without fighting the
+   parent block's transform (no translate compounding — scale + fade only). */
+.hoshimi-animate-in .grid > * {
+  animation: hoshimi-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hoshimi-animate-in .grid > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+.hoshimi-animate-in .grid > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+.hoshimi-animate-in .grid > *:nth-child(4) {
+  animation-delay: 0.15s;
+}
+.hoshimi-animate-in .grid > *:nth-child(n + 5) {
+  animation-delay: 0.2s;
+}
+
+.hoshimi-fade-in {
+  animation: hoshimi-fade-in 0.4s ease both;
+}
+
+/* Hover lift for interactive cards/rows. */
+.hoshimi-lift {
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.hoshimi-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -14px
+    color-mix(in oklab, var(--color-fd-primary) 40%, transparent);
+}
+
+/* Color the sidebar folder icons and mark the active section with a dot,
+   mirroring the Seyfert docs. Scoped to the docs shell. */
+.hoshimi-docs #nd-sidebar
+  :is(button, a):has(.lucide-chevron-down)
+  > svg:not([data-icon]),
+.hoshimi-docs #nd-sidebar p > svg {
+  transition: color 160ms ease;
+}
+
+.hoshimi-docs
+  #nd-sidebar
+  :is(button, a):has(.lucide-chevron-down)[data-active="true"]::after,
+.hoshimi-docs
+  #nd-sidebar
+  :is(button, a):has(.lucide-chevron-down):has(
+    + div a[data-active="true"]
+  )::after {
+  content: "";
+  order: 2;
+  margin-inline-start: 0.4rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 999px;
+  background-color: #22c55e;
+  box-shadow: 0 0 0 2px color-mix(in oklab, #22c55e 16%, transparent);
+}
+
+/* Smooth the navbar tab indicator + sidebar link hovers. */
+.hoshimi-docs #nd-sidebar a {
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+
+/* Sliding active-item rail (positioned by SidebarActiveRail). */
+.hoshimi-sidebar-rail {
+  position: absolute;
+  top: 0;
+  inset-inline: 0;
+  border-radius: 0 0.4rem 0.4rem 0;
+  background: color-mix(in oklab, var(--color-fd-primary) 10%, transparent);
+  border-inline-start: 2px solid var(--color-fd-primary);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 1;
+  /* Snappy slide within a section (transform/height); the rail keeps the same
+     DOM node across pages of one tab, so these transitions animate the move. */
+  transition:
+    opacity 0.2s ease,
+    transform 0.24s cubic-bezier(0.32, 0.72, 0, 1),
+    height 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Switching tabs rebuilds the sidebar (a new content node), so the rail is a
+   fresh element — fade it in via its starting style instead of popping. The
+   resting opacity stays 1, so the rail can never get stuck hidden. */
+@starting-style {
+  .hoshimi-sidebar-rail {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hoshimi-animate-in > *,
+  .hoshimi-animate-in .grid > *,
+  .hoshimi-fade-in {
+    animation: none;
+  }
+  .hoshimi-lift {
+    transition: none;
+  }
+  .hoshimi-lift:hover {
+    transform: none;
+  }
+  .hoshimi-sidebar-rail {
+    transition: none;
+    animation: none;
+  }
+}

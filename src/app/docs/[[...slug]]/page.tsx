@@ -1,4 +1,3 @@
-import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
 import {
   DocsBody,
   DocsDescription,
@@ -6,17 +5,34 @@ import {
   DocsTitle,
   MarkdownCopyButton,
   ViewOptionsPopover,
-} from "fumadocs-ui/layouts/docs/page";
-import { notFound } from "next/navigation";
-import { getMDXComponents } from "@/components/mdx";
-import type { Metadata } from "next";
+} from "fumadocs-ui/layouts/notebook/page";
 import { createRelativeLink } from "fumadocs-ui/mdx";
-import { gitConfig } from "@/lib/shared";
 import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
 import { AutoTypeTable } from "fumadocs-typescript/ui";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import {
+  ApiReference,
+  apiReferenceMetadata,
+  apiReferenceStaticParams,
+} from "@/components/api-reference/api-reference";
+import { getMDXComponents } from "@/components/mdx";
+import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
+import { gitConfig } from "@/lib/shared";
+
+// The API reference shares this catch-all instead of a sibling route: a nested
+// `/docs/api/[[...]]` route is shadowed by this optional catch-all in Next, so a
+// single route dispatches on the leading `api` segment.
+function apiSlugFor(slug: string[] | undefined) {
+  return slug?.[0] === "api" ? slug.slice(1) : undefined;
+}
 
 export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
   const params = await props.params;
+
+  const apiSlug = apiSlugFor(params.slug);
+  if (apiSlug) return <ApiReference apiSlug={apiSlug} />;
+
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
@@ -57,13 +73,20 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
 }
 
 export async function generateStaticParams() {
-  return source.generateParams();
+  return [
+    ...source.generateParams(),
+    ...apiReferenceStaticParams().map((slug) => ({ slug })),
+  ];
 }
 
 export async function generateMetadata(
   props: PageProps<"/docs/[[...slug]]">,
 ): Promise<Metadata> {
   const params = await props.params;
+
+  const apiSlug = apiSlugFor(params.slug);
+  if (apiSlug) return apiReferenceMetadata(apiSlug);
+
   const page = source.getPage(params.slug);
   if (!page) notFound();
 

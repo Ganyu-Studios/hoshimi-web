@@ -5,18 +5,6 @@ description: Control playback with search, queue, play, pause, skip, seek, and d
 
 This guide covers the complete playback lifecycle: searching for tracks, managing the queue, runtime controls, and teardown.
 
-Type reference: [Core API (TypeDoc)](/core-api/index.html)
-
-Quick links:
-- [Player](/core-api/classes/Player.html)
-- [Player.search](/core-api/classes/Player.html#search)
-- [Player.queue](/core-api/classes/Player.html#queue)
-- [Player.play](/core-api/classes/Player.html#play)
-- [Player.setPaused](/core-api/classes/Player.html#setpaused)
-- [Player.skip](/core-api/classes/Player.html#skip)
-- [Player.seek](/core-api/classes/Player.html#seek)
-- [LoopMode](/core-api/enums/LoopMode.html)
-
 ## Search & Queue
 
 Search for tracks and add them to the queue.
@@ -81,7 +69,7 @@ declare const player: Player;
 await player.disconnect();
 
 // Destroy player (cleanup, removal)
-await player.destroy(DestroyReasons.Stop);
+await player.destroy({ reason: DestroyReasons.Stop });
 ```
 
 ## Important Notes

@@ -22,11 +22,12 @@ In the project, you can see:
 - `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
 - `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
 
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
+| Route                          | Description                                            |
+| ------------------------------ | ------------------------------------------------------ |
+| `app/(home)`                   | The route group for your landing page and other pages. |
+| `app/docs`                     | The documentation layout and pages.                    |
+| `app/docs/api/[[...apiSlug]]`  | The generated API reference (index, kinds, exports).   |
+| `app/api/search/route.ts`      | The Route Handler for search.                          |
 
 ### Fumadocs MDX
 
@@ -34,21 +35,23 @@ A `source.config.ts` config file has been included, you can customise different 
 
 Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
 
-### Core API generation
+### API reference generation
 
-The TypeDoc site in `public/core-api` is generated from the `hoshimi` git submodule.
+The API reference under `/docs/api` is generated from the `hoshimi` package's
+bundled type declarations (`node_modules/hoshimi/dist/index.d.cts`).
+`scripts/generate-api-reference.mjs` parses them with the TypeScript compiler API
+and emits typed data under `src/lib/api-reference/` (`generated.ts`, `details.ts`,
+`details/*.ts`, `search.ts`). Those files are generated, git-ignored, and rebuilt
+automatically on `postinstall`, `predev`, and `prebuild`.
 
-To refresh it after updating the submodule, run:
+To regenerate manually:
 
 ```bash
-pnpm core-api:build
+pnpm api:generate
 ```
 
-If the submodule is not present yet, initialize it first:
-
-```bash
-git submodule update --init --recursive
-```
+Because `hoshimi` is a regular dependency, no git submodule or TypeDoc build is
+required — the declarations are always present after `pnpm install`.
 
 ## Learn More
 
@@ -68,16 +71,8 @@ This project is ready to deploy on Vercel as a Next.js app.
 2. Keep the detected framework as Next.js.
 3. Build settings are already defined in `vercel.json`:
   - `installCommand`: `pnpm install --frozen-lockfile`
-  - `buildCommand`: `SKIP_CORE_API_BUILD=1 pnpm build`
+  - `buildCommand`: `pnpm build`
 
-### Why `SKIP_CORE_API_BUILD=1`?
-
-The docs core API (`public/core-api`) is generated from the `hoshimi` git submodule.
-In Vercel builds, the submodule might not be present, so we skip TypeDoc generation and use the committed static artifacts in `public/core-api` and `public/core-api.json`.
-
-If you update the submodule locally, regenerate these artifacts before pushing:
-
-```bash
-git submodule update --init --recursive
-pnpm core-api:build
-```
+The API reference is regenerated during the build from the installed `hoshimi`
+dependency, so no extra steps are needed on Vercel. Set `SKIP_CORE_API_BUILD=1`
+to skip API reference generation during a build if necessary.

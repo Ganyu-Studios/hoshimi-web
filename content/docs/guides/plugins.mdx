@@ -1,0 +1,91 @@
+---
+title: Plugin Registry
+description: Map Lavalink plugins to capabilities and validate what a node can do.
+---
+
+Nodes report their installed plugins in `/v4/info`, but a feature is rarely tied to one plugin — lyrics
+work with any of three. The plugin registry maps **capabilities** to the plugin names that provide them,
+so the library asks "can this node do lyrics?" instead of "does it have this exact plugin?".
+
+## Built-in capabilities
+
+```ts twoslash copy wrap title="capabilities.ts"
+import { PluginCapabilities, PluginRegistry } from 'hoshimi';
+
+PluginRegistry.getPluginsFor(PluginCapabilities.Lyrics);
+// ["lavalyrics-plugin", "java-lyrics-plugin", "lavasrc-plugin"]
+
+PluginRegistry.getCapabilitiesOf('lavasrc-plugin');
+// ["lyrics", "extra-sources"]
+```
+
+| Capability | Provided by |
+| --- | --- |
+| `Lyrics` | lavalyrics-plugin, java-lyrics-plugin, lavasrc-plugin |
+| `ExtraSources` | lavasrc-plugin, jiosaavn-plugin |
+| `Filters` | lavalink-filter-plugin |
+| `Dspx` | lavadspx-plugin |
+| `SponsorBlock` | sponsorblock-plugin |
+| `Youtube` | youtube-plugin |
+| `Search` | lavasearch-plugin |
+
+## Registering a fork or a new plugin
+
+Bind your plugin to a built-in capability so existing features accept it, or declare a capability of your
+own for your code to check.
+
+```ts twoslash copy wrap title="register-plugin.ts"
+import { PluginCapabilities, PluginRegistry } from 'hoshimi';
+
+PluginRegistry.register(
+  { capability: PluginCapabilities.Lyrics, name: 'lavasrc-fork-plugin' },
+  { capability: PluginCapabilities.ExtraSources, name: 'lavasrc-fork-plugin' },
+);
+
+declare module 'hoshimi' {
+  interface CustomizablePluginNames {
+    myFork: 'lavasrc-fork-plugin';
+  }
+}
+```
+
+## Validating a node
+
+`validate` throws a `NodeError` when the node cannot satisfy the request. `required` demands every
+capability, `any` demands at least one.
+
+```ts twoslash copy wrap title="validate-node.ts"
+import { PluginCapabilities, PluginRegistry } from 'hoshimi';
+import type { Node } from 'hoshimi';
+
+declare const node: Node;
+
+PluginRegistry.validate({ node, required: [PluginCapabilities.Filters] });
+PluginRegistry.validate({ node, any: [PluginCapabilities.Lyrics] });
+
+// Non-throwing check against a node's reported plugins
+const hasDspx = PluginRegistry.hasCapability(node.info?.plugins ?? [], PluginCapabilities.Dspx);
+```
+
+## Skipping validation
+
+Some forks under-report their plugins. Turn the check off globally or per capability instead of patching
+around the error.
+
+```ts twoslash copy wrap title="skip-validation.ts"
+import { PluginCapabilities, PluginRegistry } from 'hoshimi';
+
+PluginRegistry.skipValidation(true);                         // everything
+PluginRegistry.skipValidation(PluginCapabilities.Filters);   // one capability
+PluginRegistry.skipValidation([PluginCapabilities.Lyrics, PluginCapabilities.Dspx]);
+
+PluginRegistry.isValidationSkipped(PluginCapabilities.Lyrics); // true
+PluginRegistry.restoreValidation();                            // back to normal
+```
+
+## Key Concepts
+
+- **Capability, not plugin**: features check a capability, so any registered plugin providing it works.
+- **Nodelink**: validation is skipped automatically for nodes that report themselves as Nodelink.
+- **Node must be ready**: `validate` throws until the node has answered `/v4/info`.
+- **Registration is global**: do it at bootstrap, before players start using the feature.

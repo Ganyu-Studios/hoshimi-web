@@ -15,10 +15,10 @@ architecture, and extensibility in mind — easy to use and always up to date.
 ## Why Hoshimi?
 
 <Cards>
-  <Card title="Type-safe" description="Comprehensive typings and type guards catch mistakes before they ship — not at runtime." />
+  <Card title="Type-safe" description="Comprehensive typings and type guards catch mistakes before they ship — not at runtime. Even filter payloads are checked per filter." />
   <Card title="Modular" description="Nodes, players, queues and storage are separate concerns you can override safely." />
   <Card title="Batteries included" description="Autoplay (YouTube & Spotify), live lyrics, audio filters and session resumption out of the box." />
-  <Card title="Scalable" description="Designed for bots running multiple nodes with resumable sessions and persistence." />
+  <Card title="Extensible" description="Sources, plugins and filters are registries: add your own, or send a fork's filter with no registration at all." />
 </Cards>
 
 ## Install
@@ -58,6 +58,6 @@ const hoshimi = new Hoshimi({
 <Cards>
   <Card title="Setup & Integration" href="/docs/getting-started/setup-and-integration" description="Wire Hoshimi into your bot's lifecycle and forward voice packets." />
   <Card title="Player Lifecycle" href="/docs/getting-started/player-lifecycle" description="Search, queue, play, pause, skip, seek and tear down players." />
-  <Card title="Guides" href="/docs/guides/search-sources" description="Sources, track resolution, nodes, queues, persistence and audio features." />
+  <Card title="Filters" href="/docs/guides/filters" description="Presets, plugin filters, and anything your fork exposes — typed per filter." />
   <Card title="API Reference" href="/docs/api" description="Every public class, function, interface and type — generated from source." />
 </Cards>

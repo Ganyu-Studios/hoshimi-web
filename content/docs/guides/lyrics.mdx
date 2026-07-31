@@ -1,0 +1,92 @@
+---
+title: Lyrics
+description: Fetch lyrics and subscribe to live line updates.
+---
+
+Lyrics come from a Lavalink plugin, so every call validates that the node provides the capability before
+hitting the endpoint — a node without `lavalyrics-plugin`, `java-lyrics-plugin` or `lavasrc-plugin`
+throws a `NodeError` instead of returning an empty result.
+
+## Fetch
+
+`player.lyrics` is bound to the player's guild and current track.
+
+```ts twoslash copy wrap title="fetch-lyrics.ts"
+import type { Player, Track } from 'hoshimi';
+
+declare const player: Player;
+declare const track: Track;
+
+const current = await player.lyrics.current();   // for what is playing now
+const forTrack = await player.lyrics.get(track); // for any track
+
+if (current) {
+  console.log(current.provider, current.lines.length);
+}
+```
+
+Pass `true` to skip the track's own source and go straight to the plugin's providers:
+`player.lyrics.current(true)`.
+
+## Live updates
+
+Subscribing makes the node push `LyricsLine` events as the track plays.
+
+```ts twoslash copy wrap title="lyrics-subscription.ts"
+import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
+
+class Hoshimi extends OriginalManager {
+  on<K extends keyof HoshimiEvents>(
+    event: K,
+    listener: (...args: HoshimiEvents[K]) => void
+  ): this {
+    return this;
+  }
+}
+
+// ---cut---
+
+import { EventNames } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const manager: Hoshimi;
+declare const player: Player;
+
+await player.lyrics.subscribe();
+
+manager.on(EventNames.LyricsLine, (player, track, payload) => {
+  console.log(payload.lineIndex, payload.line.line);
+});
+
+manager.on(EventNames.LyricsNotFound, (player) => {
+  console.log(`No lyrics for ${player.guildId}`);
+});
+
+await player.lyrics.unsubscribe();
+```
+
+## Cleanup
+
+Unsubscribe when playback ends, and drop whatever you stored alongside it.
+
+```ts twoslash copy wrap title="lyrics-cleanup.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const enabled = !!(await player.data.get('enabledLyrics'));
+
+if (enabled) {
+  await player.lyrics.unsubscribe();
+  await player.data.delete('enabledLyrics');
+}
+```
+
+## Key Concepts
+
+- **Plugin required**: all four methods validate the node first; catch `NodeError` if your fleet is mixed.
+- **Player scope**: `subscribe`/`unsubscribe`/`current` act on the player's guild; `get` takes any track.
+- **Events, not polling**: after subscribing, read lines from `LyricsLine`; `LyricsFound` fires once with
+  the whole result.
+- **Cleanup timing**: unsubscribe on `QueueEnd` and `PlayerDestroy` so the node stops pushing lines for a
+  player that no longer exists.

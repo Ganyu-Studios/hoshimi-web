@@ -1,32 +1,43 @@
 ---
 title: Tracks & Resolution
-description: Handle resolved and unresolved tracks with type guards.
+description: Work with resolved and unresolved tracks, and narrow them with type guards.
 ---
 
-This guide explains the difference between resolved and unresolved tracks, and how to safely narrow their types using type guards.
+A **`Track`** is playable: it carries the base64 `encoded` string Lavalink needs. An
+**`UnresolvedTrack`** only carries search hints — a title, maybe an author, a URI or an ISRC — and turns
+into a `Track` when the player resolves it against a node.
 
-## Type Guards
+Queue either kind: resolution happens when the track is about to play.
 
-Use `isResolved()` and `isUnresolved()` to narrow track types safely.
+## Type guards
+
+`TrackResolution` groups the guards. The first two narrow the library's own classes; the rest recognise
+plain objects coming from Lavalink or from storage.
 
 ```ts twoslash copy wrap title="track-type-guards.ts"
-import { isResolved, isUnresolved } from 'hoshimi';
+import { TrackResolution } from 'hoshimi';
 import type { Track, UnresolvedTrack } from 'hoshimi';
 
 declare const input: Track | UnresolvedTrack;
 
-if (isResolved(input)) {
-  console.log(input.info.identifier);
+if (TrackResolution.isResolved(input)) {
+  console.log(input.encoded, input.info.identifier);
 }
 
-if (isUnresolved(input)) {
+if (TrackResolution.isUnresolved(input)) {
   console.log(input.info.title);
 }
 ```
 
-## Queue Operations with Mixed Tracks
+| Guard | True for |
+| --- | --- |
+| `isResolved` | a `Track` instance |
+| `isUnresolved` | an `UnresolvedTrack` instance |
+| `isLavalinkResolved` | a plain Lavalink track object with `encoded` and a requester |
+| `isLavalinkUnresolved` | a plain object with `info.title` and no `resolve` |
+| `isStoredTrack` | a `TrackJSON` read back from a storage adapter |
 
-Add both resolved and unresolved tracks to the queue—the system will resolve them as needed.
+## Queueing a mix
 
 ```ts twoslash copy wrap title="queue-mixed-tracks.ts"
 import type { Player, Track, UnresolvedTrack } from 'hoshimi';
@@ -34,18 +45,55 @@ import type { Player, Track, UnresolvedTrack } from 'hoshimi';
 declare const player: Player;
 declare const items: Array<Track | UnresolvedTrack>;
 
-for (const item of items) {
-  await player.queue.add(item);
-}
+await player.queue.add(items);
 
 if (!player.isPlaying()) {
   await player.play();
 }
 ```
 
+## Building an unresolved track
+
+Useful when importing a playlist from somewhere that is not Lavalink: keep the metadata now and pay for
+the search later, only for the tracks that actually get played.
+
+```ts twoslash copy wrap title="unresolved-track.ts"
+import { Structures } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const track = Structures.UnresolvedTrack(
+  {
+    info: {
+      title: 'Harder Better Faster Stronger',
+      author: 'Daft Punk',
+      isrc: 'GBDUW0000059',
+    },
+  },
+  { id: '123', username: 'demo-user' },
+);
+
+await player.queue.add(track);
+```
+
+## How resolution picks a track
+
+`UnresolvedTrack.resolve()` tries, in order:
+
+1. **`encoded`** — decoded directly through the node, no search.
+2. **`info.uri`** — searched as a URL, first result wins.
+3. **A query** built from `title` and `author`, then narrowed by author name, then by duration
+   (±1.5s), then by ISRC.
+
+It throws a `ResolveError` when nothing matches, so a bad import surfaces as a failed `play()` instead of
+a silent skip.
+
 ## Key Concepts
 
-- **Resolved tracks**: Have a Lavalink identifier and metadata (duration, artist, etc.).
-- **Unresolved tracks**: Only have query info (title, author); need node resolution.
-- **Type guards**: Always use `isResolved()` before accessing identifier-dependent properties.
-- **Queue flexibility**: The queue accepts both types; unresolved tracks are resolved during playback.
+- **Requester travels with the track**: `requester` and `userData` survive resolution, so whatever you
+  attached at search time is still there when the track plays.
+- **`queue.utils.build()`** normalises any of the five shapes above into a `Track`; the player calls it
+  for you.
+- **Storage round-trip**: tracks saved through a queue adapter come back as `TrackJSON`, which
+  `isStoredTrack` recognises and `Structures.Track` rehydrates.

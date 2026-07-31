@@ -13,8 +13,10 @@ Use `instanceof` checks to handle different error categories appropriately.
 import {
   ManagerError,
   NodeError,
+  NodeManagerError,
   OptionError,
   PlayerError,
+  QueueError,
   ResolveError,
   RestError,
   StorageError,
@@ -29,6 +31,10 @@ try {
     console.error('Manager state error:', error.message);
   } else if (error instanceof NodeError) {
     console.error('Node connection error:', error.message);
+  } else if (error instanceof NodeManagerError) {
+    console.error('No node available:', error.message);
+  } else if (error instanceof QueueError) {
+    console.error('Queue state error:', error.message);
   } else if (error instanceof PlayerError) {
     console.error('Playback error:', error.message);
   } else if (error instanceof ResolveError) {
@@ -54,12 +60,18 @@ try {
 | **ResolveError** | Track lookup failed | Try different search query |
 | **RestError** | Lavalink HTTP error | Retry with backoff |
 | **StorageError** | Adapter operation failed | Check storage backend |
+| **NodeManagerError** | No connected node to pick | Wait for a node, or add one |
+| **QueueError** | Queue holds something that is not a track | Inspect what was pushed into it |
+| **MergeError** | A required manager option is missing | Fix the options object |
+
+`RestError` carries the Lavalink response: `status`, `error`, `path` and `trace` alongside `message`.
+`NodeError` names the node in `error.name`, so logs point at the right one in a multi-node fleet.
 
 ## Recovery Checklist
 
 Apply these patterns to ensure resilient playback:
 
-- **Before commands**: Check `manager.isUseable()` for quick health validation.
+- **Before commands**: Check `manager.isUsable()` for quick health validation.
 - **Before player operations**: Verify voice channel access and player existence.
 - **Queue operations**: Guard with `queue.isEmpty()` before shifting/accessing.
 - **Session persistence**: Save player/queue state after successful updates.

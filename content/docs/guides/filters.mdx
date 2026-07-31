@@ -1,0 +1,153 @@
+---
+title: Filters
+description: Apply built-in, plugin and fork filters with a single typed setter.
+---
+
+A filter is active while its key is present in the payload. There is no neutral "off" value: `clear`
+removes the key, `isEnabled` is presence, and a fresh player sends nothing at all.
+
+## Presets
+
+The typed setters cover the built-in Lavalink filters and the two filter plugins.
+
+```ts twoslash copy wrap title="filter-presets.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const filters = player.filterManager;
+
+await filters.setNightcore();
+await filters.setVaporwave();
+await filters.setKaraoke({ level: 1, monoLevel: 1, filterBand: 220, filterWidth: 100 });
+await filters.setEQBand({ band: 0, gain: 0.25 }, { band: 1, gain: 0.15 });
+
+// Plugin facades
+await filters.plugin.setEcho({ delay: 200, decay: 0.5 });   // lavalink-filter-plugin
+await filters.dspx.setLowPass({ cutoffFrequency: 500, boostFactor: 1.5 }); // lavadspx-plugin
+
+await filters.reset(); // drops everything
+```
+
+## set, get, clear
+
+`set` is the generic entry point: it takes any filter name and the payload it expects, writes it to the
+right envelope and commits. `get` reads it back, `clear` removes it.
+
+```ts twoslash copy wrap title="filter-crud.ts"
+import { FilterType } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const filters = player.filterManager;
+
+await filters.set(FilterType.Timescale, { speed: 1.29, pitch: 1.29, rate: 0.94 });
+
+const timescale = filters.get(FilterType.Timescale);
+//    ^?
+
+filters.isEnabled(FilterType.Timescale); // true
+filters.getEnabled();                    // ["timescale"]
+
+await filters.clear(FilterType.Timescale);
+```
+
+<Callout type="info" title="Payloads are typed per filter">
+  The payload type is resolved from the filter name, so `set(FilterType.Volume, { nope: true })` does not
+  compile. `FilterType.Echo` and `FilterType.DSPXEcho` share the `echo` wire key but take different
+  payloads, and the types keep them apart.
+</Callout>
+
+## Filters Hoshimi does not know
+
+Any filter can be set without registering it first — a fork's own filter, a plugin you wrote, anything.
+The options decide where the payload lands in the `filters` object sent to Lavalink.
+
+```ts twoslash copy wrap title="custom-filters.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+const filters = player.filterManager;
+
+// pluginFilters.myFilter — the extension point the Lavalink v4 spec defines
+await filters.set('myFilter', { gain: 2 });
+
+// pluginFilters["my-plugin"].boost — nested, the spec's plugin shape
+await filters.set('boost', { gain: 2 }, { plugin: 'my-plugin' });
+
+// filters.forkEcho — top level, where a fork exposes its own filters
+await filters.set('forkEcho', { decay: 0.5 }, { top: true });
+
+// Clearing needs the same routing that was used to set it
+await filters.clear('boost', { plugin: 'my-plugin' });
+```
+
+Hoshimi does not check which server it is talking to, so whether a fork-specific filter is safe to send
+is up to you: point the player at a node that understands it.
+
+| Options | Envelope | Node check |
+| --- | --- | --- |
+| *(none)*, registered filter | whatever the registry resolves | yes |
+| *(none)*, unknown filter | `pluginFilters[name]` | no |
+| `plugin: true` | `pluginFilters[name]` | no |
+| `plugin: 'name'` | `pluginFilters['name'][filter]` | no |
+| `top: true` | `filters[name]` | no |
+
+Pass `validate: false` to skip the check on a registered filter, for nodes that support a filter without
+advertising it.
+
+## Registering a filter
+
+Registration is optional. It buys routing by name — no options at the call site — plus validation against
+what the node reports in `/v4/info`.
+
+```ts twoslash copy wrap title="register-filter.ts"
+import { FilterRegistry, FilterScope, PluginCapabilities } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+FilterRegistry.register({
+  name: 'boost',
+  scope: FilterScope.Plugin,     // Plugin -> pluginFilters · Core -> top level
+  pluginName: 'my-plugin',       // omit to write it flat under pluginFilters
+  capability: PluginCapabilities.Filters,
+});
+
+await player.filterManager.set('boost', { gain: 2 }); // routed and validated
+```
+
+## Typing your own filters
+
+Declare the payload of a custom filter through module augmentation. The key is the filter name, the value
+is what it takes.
+
+```ts twoslash copy wrap title="typed-custom-filter.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+
+declare module 'hoshimi' {
+  interface CustomizableFilters {
+    forkEcho: { decay: number; delay: number };
+  }
+}
+
+await player.filterManager.set('forkEcho', { decay: 0.5, delay: 200 }, { top: true });
+
+const echo = player.filterManager.get('forkEcho', { top: true });
+//    ^?
+```
+
+A filter nobody declared takes `unknown`, so ad-hoc payloads keep working without any of this.
+
+## Key Concepts
+
+- **Presence is state**: `data` holds only active filters; reading `data.timescale` returns `undefined`
+  until you set it.
+- **`apply()`** commits the current payload without changing it. The two-argument form is deprecated in
+  favour of `set`.
+- **Node capability**: filters the node cannot host are dropped at commit time, once it has reported its
+  info. Filters the registry does not know are never dropped.

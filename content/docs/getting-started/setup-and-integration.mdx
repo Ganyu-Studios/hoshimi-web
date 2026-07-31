@@ -103,6 +103,10 @@ if (!player.connected) await player.connect();
 ## Key Patterns
 
 - **Idempotent creation**: `createPlayer()` returns existing players by guild ID.
-- **Health checks**: Use `manager.isUseable()` before command execution.
-- **Session options**: Configure `resumable`, `resumeByLibrary`, and `resumeTimeout` in `nodeOptions` to persist playback across restarts.
+- **Health checks**: Use `manager.isUsable()` before command execution — it is only true once a node is
+  connected.
+- **Session options**: `nodeOptions.sessionOptions` holds `resumable`, `timeout` (seconds) and
+  `byLibrary`, and persists playback across restarts.
 - **Auto-destroy**: Set `playerOptions.onDisconnect.autoDestroy` to clean up players when the bot leaves a voice channel.
+- **Client id is required**: `init()` throws unless you pass a real one — the default `"0"` is a
+  placeholder, not a usable id.

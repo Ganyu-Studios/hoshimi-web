@@ -1,0 +1,81 @@
+---
+title: Autoplay
+description: Keep playing when the queue runs out, with the built-in function or your own.
+---
+
+When a queue ends, Hoshimi calls the autoplay function before emitting `QueueEnd`. If that function
+queues something, playback continues and no `QueueEnd` is emitted.
+
+## Enabling it
+
+Autoplay is off by default. Turn it on globally, or per player through its storage.
+
+```ts twoslash copy wrap title="enable-autoplay.ts"
+import { createHoshimi } from 'hoshimi';
+import type { Player } from 'hoshimi';
+
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+declare const player: Player;
+// ---cut---
+const manager = createHoshimi({
+  sendPayload,
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  queueOptions: {
+    autoPlay: true, // every player
+  },
+});
+
+// …or per guild, which the built-in function checks first
+await player.data.set('enabledAutoplay', true);
+```
+
+The built-in function handles **YouTube** (mix radio from the last track) and **Spotify**
+(`sprec` recommendations seeded with recent history), and filters out anything already in the history so
+it does not loop over the same songs.
+
+## Writing your own
+
+Replace it to support other sources or your own recommendation logic. It receives the player and the last
+track played, and is expected to push onto the queue.
+
+```ts twoslash copy wrap title="custom-autoplay.ts"
+import { createHoshimi, SearchSources } from 'hoshimi';
+
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+// ---cut---
+const manager = createHoshimi({
+  sendPayload,
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  queueOptions: {
+    autoPlay: true,
+    async autoplayFn(player, lastTrack) {
+      if (!lastTrack) return;
+
+      const { tracks } = await player.search({
+        query: `${lastTrack.info.author} radio`,
+        source: SearchSources.Deezer,
+        requester: lastTrack.requester,
+      });
+
+      const seen = new Set(player.queue.history.map((track) => track.info.identifier));
+      const next = tracks.filter((track) => !seen.has(track.info.identifier)).slice(0, 5);
+
+      if (next.length) await player.queue.add(next);
+    },
+  },
+});
+```
+
+<Callout type="warn" title="Guard against runaway queues">
+  The function runs on every queue end. Filter against `player.queue.history` — the built-in one does —
+  or a bad recommendation loop will replay the same track forever.
+</Callout>
+
+## Key Concepts
+
+- **Both switches count**: the built-in function plays when `queueOptions.autoPlay` is on **or** the
+  player has `enabledAutoplay` in its storage, so users can toggle it per guild.
+- **Runs before `QueueEnd`**: queue something and the event never fires; queue nothing and the queue ends
+  normally.
+- **History is the memory**: `player.queue.history` is capped by `queueOptions.maxHistory` (25 by
+  default), which is also what autoplay dedupes against.

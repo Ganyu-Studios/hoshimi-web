@@ -7,23 +7,46 @@ This guide covers node selection strategies, health checks, and operations like 
 
 ## Select Nodes
 
-Use `getLeastUsed()` for automatic load balancing, or access nodes directly.
+`getLeastUsed()` picks among the **connected** nodes and throws a `NodeManagerError` when there are
+none — it never returns `undefined`.
 
 ```ts twoslash copy wrap title="node-selection.ts"
+import { NodeSortTypes } from 'hoshimi';
 import type { Hoshimi } from 'hoshimi';
 
 declare const manager: Hoshimi;
 
-const leastUsed = manager.nodeManager.getLeastUsed();
+const byPenalties = manager.nodeManager.getLeastUsed(); // default
+const byMemory = manager.nodeManager.getLeastUsed(NodeSortTypes.Memory);
+const custom = manager.nodeManager.getLeastUsed((node) => node.stats?.playingPlayers ?? 0);
 
-if (!leastUsed) {
-  throw new Error('No available nodes');
-}
-
-console.log(`Using node: ${leastUsed.id}`);
-console.log(`Ready: ${leastUsed.ready}`);
-console.log(`Penalties: ${leastUsed.penalties}`);
+console.log(`Using node: ${byPenalties.id}`);
+console.log(`Ready: ${byPenalties.ready}`);
+console.log(`Penalties: ${byPenalties.penalties}`);
+console.log(byMemory.id, custom.id);
 ```
+
+Sort strategies: `Penalties` (default), `Players`, `PlayingPlayers`, `Cpu`, `SystemLoad`,
+`LavalinkLoad`, `Memory` — or any function returning a number, where lowest wins. Penalties combine the
+player count with CPU load and frame deficits.
+
+## Moving players between nodes
+
+`player.move()` re-creates the player on another node, keeping position, volume and filters. It refuses
+the move when the target lacks a source manager the queue depends on, so a Spotify queue never lands on a
+node that cannot play it.
+
+```ts twoslash copy wrap title="node-move.ts"
+import type { Hoshimi, Player } from 'hoshimi';
+
+declare const manager: Hoshimi;
+declare const player: Player;
+
+await player.move(manager.nodeManager.getLeastUsed());
+```
+
+Set `nodeOptions.moveOptions.move` to have Hoshimi do this automatically for every player of a node that
+disconnects, picking the target with `moveOptions.filterBy`.
 
 ## Decode Tracks
 
@@ -54,9 +77,20 @@ const players = await node.rest.getPlayers();
 console.log(`Active players: ${players.length}`);
 ```
 
+## Staying connected
+
+Each socket runs a ping/pong heartbeat: if a ping goes unanswered within
+`nodeOptions.heartbeatOptions.interval` (30s by default), the socket is terminated and the normal
+reconnect path takes over. Set it to `0` to disable.
+
+A dropped node retries `retryAmount` times, `retryDelay` apart, then destroys itself and emits
+`NodeError`. With `sessionOptions.resumable` the node keeps its Lavalink session alive for `timeout`
+seconds, so players survive a restart; with `byLibrary`, Hoshimi replays its own state onto the node
+instead of relying on Lavalink's resume.
+
 ## Best Practices
 
-- Prefer `getLeastUsed()` for default load balancing.
+- Prefer `getLeastUsed()` for default load balancing, and catch `NodeManagerError` if no node may be up.
 - Always check `node.ready` before forcing node-specific operations.
 - Use `node.rest` only for low-level operations; prefer manager/player abstractions for typical flows.
-- Validate node health before critical operations.
+- `node.isNodelink()` tells you the node is a fork, which skips plugin validation.

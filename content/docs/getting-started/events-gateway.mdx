@@ -44,6 +44,39 @@ manager.on(EventNames.PlayerDestroy, (player) => {
 });
 ```
 
+## Debug Output
+
+Every internal step emits a `debug` event tagged with the subsystem it came from, which is the fastest
+way to see what Hoshimi is doing with the wire without attaching a debugger.
+
+```ts twoslash copy wrap title="debug-logging.ts"
+import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
+
+class Hoshimi extends OriginalManager {
+  on<K extends keyof HoshimiEvents>(
+    event: K,
+    listener: (...args: HoshimiEvents[K]) => void
+  ): this {
+    return this;
+  }
+}
+
+// ---cut---
+
+import { DebugLevels, EventNames } from 'hoshimi';
+
+declare const manager: Hoshimi;
+
+manager.on(EventNames.Debug, (level, message) => {
+  if (level === DebugLevels.Rest) return; // noisy: one line per request
+
+  console.debug(DebugLevels[level], message);
+});
+```
+
+Levels are `Manager`, `Node`, `Player`, `Rest`, `Queue` and `Test`. Node passwords are censored in the
+messages, so debug output is safe to log.
+
 ## Production Checklist
 
 Ensure consistent state across your application:

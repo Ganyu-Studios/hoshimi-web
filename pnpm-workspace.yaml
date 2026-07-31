@@ -21,6 +21,6 @@ minimumReleaseAgeExclude:
   - fumadocs-core@16.10.7
   - fumadocs-ui@16.10.7
   - tailwindcss@4.3.2
-  - hoshimi@0.4.1-dev-30661944975.0
+  - hoshimi@0.5.0
 
 packages: []

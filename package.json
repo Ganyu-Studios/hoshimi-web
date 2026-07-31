@@ -26,7 +26,7 @@
     "fumadocs-twoslash": "^3.2.1",
     "fumadocs-typescript": "^5.2.7",
     "fumadocs-ui": "16.10.7",
-    "hoshimi": "0.4.1-dev-30661944975.0",
+    "hoshimi": "0.5.0",
     "lucide-react": "^1.22.0",
     "next": "16.2.9",
     "react": "^19.2.7",

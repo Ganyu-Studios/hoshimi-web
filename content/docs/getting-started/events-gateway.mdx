@@ -10,20 +10,7 @@ This guide covers event wiring and the production checklist to ensure clean stat
 Subscribe to manager events using `EventNames` constants. Key events include node readiness, player creation, and queue completion.
 
 ```ts twoslash copy wrap title="event-listeners.ts"
-import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
-
-class Hoshimi extends OriginalManager {
-  on<K extends keyof HoshimiEvents>(
-    event: K,
-    listener: (...args: HoshimiEvents[K]) => void
-  ): this {
-    return this;
-  }
-}
-
-// ---cut---
-
-import { EventNames } from 'hoshimi';
+import { EventNames, Hoshimi } from 'hoshimi';
 
 declare const manager: Hoshimi;
 
@@ -50,20 +37,7 @@ Every internal step emits a `debug` event tagged with the subsystem it came from
 way to see what Hoshimi is doing with the wire without attaching a debugger.
 
 ```ts twoslash copy wrap title="debug-logging.ts"
-import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
-
-class Hoshimi extends OriginalManager {
-  on<K extends keyof HoshimiEvents>(
-    event: K,
-    listener: (...args: HoshimiEvents[K]) => void
-  ): this {
-    return this;
-  }
-}
-
-// ---cut---
-
-import { DebugLevels, EventNames } from 'hoshimi';
+import { DebugLevels, EventNames, Hoshimi } from 'hoshimi';
 
 declare const manager: Hoshimi;
 

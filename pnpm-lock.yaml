@@ -27,8 +27,8 @@ importers:
         specifier: 16.14.2
         version: 16.14.2(@types/mdx@2.0.14)(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(fumadocs-core@16.14.2(@mdx-js/mdx@3.1.1)(@types/estree-jsx@1.0.5)(@types/hast@3.0.5)(@types/mdast@4.0.4)(@types/react@19.2.18)(lucide-react@1.30.0(react@19.2.8))(next@16.3.0(@types/node@26.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(zod@4.4.3))(next@16.3.0(@types/node@26.2.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(tailwindcss@4.3.3)
       hoshimi:
-        specifier: 0.5.1
-        version: 0.5.1
+        specifier: 0.5.2
+        version: 0.5.2
       lucide-react:
         specifier: ^1.30.0
         version: 1.30.0(react@19.2.8)
@@ -1602,8 +1602,8 @@ packages:
   hastscript@9.0.1:
     resolution: {integrity: sha512-g7df9rMFX/SPi34tyGCyUBREQoKkapwdY/T04Qn9TDWfHhAYt4/I0gMVirzK5wEzeUqIjEB+LXC/ypb7Aqno5w==}
 
-  hoshimi@0.5.1:
-    resolution: {integrity: sha512-WH9NLzSZl4d6W8RdvwRJkQy1e8g4lk84WZMuDpW5t0QjBRar9e5mFN5X4c6B+Bg729aS6v6bkCjqRwW+t2bR8Q==}
+  hoshimi@0.5.2:
+    resolution: {integrity: sha512-UBVwJxE8hMdgIoQyveJPg/mlgLP/YdAN14K2j6hKHkZF9ab6BWAuOOfdDRAh0b/3yPrU5D63TnydG/WkSMGlGg==}
 
   html-void-elements@3.0.0:
     resolution: {integrity: sha512-bEqo66MRXsUGxWHV5IP0PUiAWwoEjba4VCzg0LjFJBpchPaTfyfCKTG6bc5F8ucKec3q5y6qOdGyYTSBEvhCrg==}
@@ -3663,7 +3663,7 @@ snapshots:
       property-information: 7.2.0
       space-separated-tokens: 2.0.2
 
-  hoshimi@0.5.1:
+  hoshimi@0.5.2:
     dependencies:
       ws: 8.21.3
     transitivePeerDependencies:

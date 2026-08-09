@@ -33,20 +33,7 @@ Pass `true` to skip the track's own source and go straight to the plugin's provi
 Subscribing makes the node push `LyricsLine` events as the track plays.
 
 ```ts twoslash copy wrap title="lyrics-subscription.ts"
-import { Hoshimi as OriginalManager, HoshimiEvents } from 'hoshimi';
-
-class Hoshimi extends OriginalManager {
-  on<K extends keyof HoshimiEvents>(
-    event: K,
-    listener: (...args: HoshimiEvents[K]) => void
-  ): this {
-    return this;
-  }
-}
-
-// ---cut---
-
-import { EventNames } from 'hoshimi';
+import { EventNames, Hoshimi } from 'hoshimi';
 import type { Player } from 'hoshimi';
 
 declare const manager: Hoshimi;

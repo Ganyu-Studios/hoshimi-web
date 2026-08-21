@@ -431,7 +431,8 @@ h6 {
 
 /* Color the sidebar folder icons and mark the active section with a dot,
    mirroring the Seyfert docs. Scoped to the docs shell. */
-.hoshimi-docs #nd-sidebar
+.hoshimi-docs
+  #nd-sidebar
   :is(button, a):has(.lucide-chevron-down)
   > svg:not([data-icon]),
 .hoshimi-docs #nd-sidebar p > svg {

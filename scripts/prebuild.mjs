@@ -9,18 +9,24 @@ import process from "node:process";
 const skipApiReference = process.env.SKIP_CORE_API_BUILD === "1";
 
 if (skipApiReference) {
-  console.log("[prebuild] SKIP_CORE_API_BUILD=1, skipping API reference generation.");
+  console.log(
+    "[prebuild] SKIP_CORE_API_BUILD=1, skipping API reference generation.",
+  );
   process.exit(0);
 }
 
 if (!existsSync("node_modules/hoshimi/dist/index.d.cts")) {
-  console.error("[prebuild] Missing hoshimi declarations at node_modules/hoshimi/dist/index.d.cts.");
+  console.error(
+    "[prebuild] Missing hoshimi declarations at node_modules/hoshimi/dist/index.d.cts.",
+  );
   console.error("[prebuild] Run: pnpm install");
   process.exit(1);
 }
 
 try {
-  console.log("[prebuild] Generating API reference from hoshimi declarations...");
+  console.log(
+    "[prebuild] Generating API reference from hoshimi declarations...",
+  );
   execSync("node scripts/generate-api-reference.mjs", { stdio: "inherit" });
 } catch (error) {
   const message = error instanceof Error ? error.message : String(error);

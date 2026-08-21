@@ -1,7 +1,7 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
 import "./global.css";
-import { Noto_Sans_JP, Space_Grotesk } from "next/font/google";
 import type { Metadata } from "next";
+import { Noto_Sans_JP, Space_Grotesk } from "next/font/google";
 
 const heading = Space_Grotesk({
   subsets: ["latin"],

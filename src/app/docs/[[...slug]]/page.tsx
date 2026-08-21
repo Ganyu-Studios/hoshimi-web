@@ -1,3 +1,5 @@
+import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
+import { AutoTypeTable } from "fumadocs-typescript/ui";
 import {
   DocsBody,
   DocsDescription,
@@ -7,8 +9,6 @@ import {
   ViewOptionsPopover,
 } from "fumadocs-ui/layouts/notebook/page";
 import { createRelativeLink } from "fumadocs-ui/mdx";
-import { Popup, PopupContent, PopupTrigger } from "fumadocs-twoslash/ui";
-import { AutoTypeTable } from "fumadocs-typescript/ui";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import {
@@ -17,8 +17,8 @@ import {
   apiReferenceStaticParams,
 } from "@/components/api-reference/api-reference";
 import { getMDXComponents } from "@/components/mdx";
-import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
 import { gitConfig } from "@/lib/shared";
+import { getPageImage, getPageMarkdownUrl, source } from "@/lib/source";
 
 // The API reference shares this catch-all instead of a sibling route: a nested
 // `/docs/api/[[...]]` route is shadowed by this optional catch-all in Next, so a

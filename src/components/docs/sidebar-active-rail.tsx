@@ -18,6 +18,7 @@ export function SidebarActiveRail() {
   const [content, setContent] = useState<HTMLElement | null>(null);
   const [box, setBox] = useState<Box | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: pathname is an intentional trigger to re-measure the rail on navigation, not a value read inside the effect
   useEffect(() => {
     let frame = 0;
 

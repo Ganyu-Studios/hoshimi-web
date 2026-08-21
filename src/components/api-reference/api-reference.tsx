@@ -214,6 +214,7 @@ function ApiKindCard({ kind }: { kind: ApiKind }) {
         <div className="flex shrink-0 items-center gap-1.5">
           <KindBadge kind={kind} />
           <span
+            role="img"
             className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-fd-border bg-fd-secondary px-1.5 text-[11px] font-semibold tabular-nums text-fd-foreground"
             aria-label={`${entries.length} ${apiKindLabel[kind].toLowerCase()}`}
           >
@@ -446,14 +447,11 @@ function DocTagHeading({
   children: ReactNode;
   level?: 2 | 3;
 }) {
+  const Heading = level === 2 ? "h2" : "h3";
   return (
-    <div
-      role="heading"
-      aria-level={level}
-      className="text-sm font-semibold leading-5 text-fd-foreground"
-    >
+    <Heading className="text-sm font-semibold leading-5 text-fd-foreground">
       {children}
-    </div>
+    </Heading>
   );
 }
 
@@ -767,6 +765,7 @@ function HighlightedCode({
   memberTargets: Map<string, CodeLinkTarget>;
 }) {
   return lines.map((line, lineIndex) => (
+    // biome-ignore lint/suspicious/noArrayIndexKey: tokenized code lines are static and never reordered
     <span key={lineIndex} className="line block">
       {line.flatMap((token, tokenIndex) => {
         const style = tokenStyle(token);
@@ -776,6 +775,7 @@ function HighlightedCode({
           .filter(Boolean)
           .map((part, partIndex) => (
             <CodeToken
+              // biome-ignore lint/suspicious/noArrayIndexKey: syntax-token parts have no stable id; the composite index is stable within a static line
               key={`${lineIndex}-${tokenIndex}-${partIndex}`}
               highlightName={highlightName}
               memberTargets={memberTargets}

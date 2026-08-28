@@ -1,0 +1,88 @@
+---
+title: Type Your Track Requester
+description: Give track.requester and track.userData a real shape with module augmentation.
+---
+
+By default `track.requester` and `track.userData` are loosely typed. Augment `CustomizableTrack` once and both become strongly typed everywhere a track flows.
+
+## Declare the shapes
+
+```ts twoslash copy wrap title="augment-track.ts"
+import type { Track } from 'hoshimi';
+
+declare module 'hoshimi' {
+  interface CustomizableTrack {
+    requester: { id: string; username: string };
+    userData: { addedAt: number };
+  }
+}
+
+declare const track: Track;
+// ---cut---
+console.log(track.requester.username);
+console.log(track.userData?.addedAt);
+```
+
+<Callout type="info" title="One declaration, everywhere">
+  The augmentation is global. Put it in a `.d.ts` (or any file that runs at startup) and every
+  `TrackStructure` across your codebase picks up the types — no per-call casting.
+</Callout>
+
+## Pass it through search
+
+Whatever you pass as `requester` is now checked against your shape.
+
+```ts twoslash copy wrap title="pass-requester.ts"
+import type { Player } from 'hoshimi';
+
+declare module 'hoshimi' {
+  interface CustomizableTrack {
+    requester: { id: string; username: string };
+  }
+}
+
+declare const player: Player;
+// ---cut---
+const result = await player.search({
+  query: 'never gonna give you up',
+  requester: { id: '123', username: 'rick' },
+});
+
+console.log(result.tracks[0]?.requester.id);
+```
+
+## Normalize with `requesterFn`
+
+Set `playerOptions.requesterFn` to run every incoming requester through a mapper before it is stored — handy to strip a full Discord user down to just the fields you keep.
+
+```ts twoslash copy wrap title="requester-fn.ts"
+import { createHoshimi } from 'hoshimi';
+import type { TrackRequester } from 'hoshimi';
+
+interface RawUser {
+  id: string;
+  username: string;
+  avatar: string;
+}
+
+declare module 'hoshimi' {
+  interface CustomizableTrack {
+    requester: { id: string; username: string };
+  }
+}
+
+function mapRequester<T>(requester: TrackRequester): T {
+  const user = requester as RawUser;
+  return { id: user.id, username: user.username } as T;
+}
+
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+// ---cut---
+const manager = createHoshimi({
+  sendPayload,
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  playerOptions: {
+    requesterFn: mapRequester,
+  },
+});
+```

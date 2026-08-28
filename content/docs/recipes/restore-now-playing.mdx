@@ -1,0 +1,43 @@
+---
+title: Restore the Current Track and Position
+description: Persist what is playing and resume it from the same spot after a restart.
+---
+
+A [queue storage adapter](/docs/guides/queue-storage) persists the tracks and history, and `sync({ syncCurrent: true })` brings `queue.current` back. What it does **not** store is the live playback position — that changes every second, so you snapshot it yourself and re-seek after replaying.
+
+## Snapshot the position
+
+Save `player.position` wherever you keep durable state — a database, Redis, or the player's own [typed storage](/docs/recipes/typed-player-data). Do it on a timer and on shutdown.
+
+```ts twoslash copy wrap title="save-position.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+declare const persist: (guildId: string, position: number) => Promise<void>;
+// ---cut---
+await persist(player.guildId, player.position);
+```
+
+## Replay on restart
+
+After recreating the player, sync the queue to restore `current`, replay it, then seek to the saved position.
+
+```ts twoslash copy wrap title="restore-position.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+declare const savedPosition: number;
+// ---cut---
+await player.queue.utils.sync({ syncCurrent: true });
+
+const current = player.queue.current;
+if (current) {
+  await player.play({ track: current });
+  await player.seek(savedPosition);
+}
+```
+
+<Callout type="warn" title="Seek after the track starts">
+  Call `seek()` after `play()` — seeking is a player update against the track that is now current. If you
+  seek before anything is playing, there is nothing to seek.
+</Callout>

@@ -1,0 +1,101 @@
+---
+title: Recover From Errors and Failures
+description: Handle typed errors, and react to load failures and stuck tracks.
+---
+
+Hoshimi throws typed errors and emits events for playback failures. Handle both to keep a session resilient.
+
+## Typed error handling
+
+Every failure is an instance of a specific error class, so `instanceof` routes each to the right recovery.
+
+```ts twoslash copy wrap title="error-handling.ts"
+import {
+  ManagerError,
+  NodeError,
+  NodeManagerError,
+  OptionError,
+  PlayerError,
+  QueueError,
+  ResolveError,
+  RestError,
+  StorageError,
+} from 'hoshimi';
+
+try {
+  // Any Hoshimi operation that may fail
+} catch (error) {
+  if (error instanceof OptionError) {
+    console.error('Invalid options:', error.message);
+  } else if (error instanceof ManagerError) {
+    console.error('Manager state error:', error.message);
+  } else if (error instanceof NodeError) {
+    console.error('Node connection error:', error.message);
+  } else if (error instanceof NodeManagerError) {
+    console.error('No node available:', error.message);
+  } else if (error instanceof QueueError) {
+    console.error('Queue state error:', error.message);
+  } else if (error instanceof PlayerError) {
+    console.error('Playback error:', error.message);
+  } else if (error instanceof ResolveError) {
+    console.error('Track resolution failed:', error.message);
+  } else if (error instanceof RestError) {
+    console.error('Lavalink REST error:', error.message);
+  } else if (error instanceof StorageError) {
+    console.error('Storage adapter error:', error.message);
+  } else {
+    console.error('Unknown error:', error);
+  }
+}
+```
+
+## Error categories
+
+| Error Type | Cause | Recovery |
+|-----------|-------|----------|
+| **OptionError** | Invalid configuration | Fix options, restart |
+| **ManagerError** | Invalid manager state | Check manager initialization |
+| **NodeError** | Node connection/status | Retry, fallback to another node |
+| **PlayerError** | Invalid player operation | Validate player state |
+| **ResolveError** | Track lookup failed | Try a different search query |
+| **RestError** | Lavalink HTTP error | Retry with backoff |
+| **StorageError** | Adapter operation failed | Check storage backend |
+| **NodeManagerError** | No connected node to pick | Wait for a node, or add one |
+| **QueueError** | Queue holds something that is not a track | Inspect what was pushed into it |
+| **MergeError** | A required manager option is missing | Fix the options object |
+
+`RestError` carries the Lavalink response: `status`, `error`, `path` and `trace` alongside `message`. `NodeError` names the node in `error.name`, so logs point at the right one in a multi-node fleet.
+
+## Load failures and stuck tracks
+
+A track can fail to load, or stall mid-playback. Let Hoshimi react automatically with `onError`, and observe it with the `trackStuck` event.
+
+```ts twoslash copy wrap title="stuck-and-errors.ts"
+import { createHoshimi } from 'hoshimi';
+
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+// ---cut---
+const manager = createHoshimi({
+  sendPayload,
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  playerOptions: {
+    onError: {
+      autoStop: true, // stop playback on a track error instead of stalling
+    },
+  },
+});
+
+manager.on('trackStuck', (player, track) => {
+  console.log(`Stuck: ${track?.info.title ?? 'unknown'} in ${player.guildId}`);
+});
+```
+
+`onError.autoDestroy` tears the player down instead (it takes precedence over `autoStop`). For disconnects, `onDisconnect` offers `autoReconnect`, `autoDestroy` and `autoQueue`.
+
+## Recovery checklist
+
+- **Before commands:** check `manager.isUsable()` for a quick health gate.
+- **Before player operations:** verify voice channel access and player existence.
+- **Queue operations:** guard with `queue.isEmpty()` before shifting/accessing.
+- **Session persistence:** save player/queue state after successful updates — see [Resume sessions after a restart](/docs/recipes/resuming).
+- **Cleanup:** on `queueEnd` and `playerDestroy`, clear transient storage (lyrics ids, message refs).

@@ -1,0 +1,38 @@
+---
+title: Type player.data Keys
+description: Give player.data a schema so get/set are checked and autocompleted.
+---
+
+Each player carries a small key/value store at `player.data`. Augment `CustomizablePlayerStorage` to declare its keys and value types — `get` and `set` then autocomplete and type-check against your schema.
+
+## Declare the schema
+
+```ts twoslash copy wrap title="typed-player-data.ts"
+import type { Player, LyricsResult } from 'hoshimi';
+
+declare module 'hoshimi' {
+  interface CustomizablePlayerStorage {
+    enabledAutoplay: boolean;
+    lyricsId: string;
+    lyrics: LyricsResult;
+  }
+}
+
+declare const player: Player;
+// ---cut---
+await player.data.set('enabledAutoplay', true);
+
+const enabled = await player.data.get('enabledAutoplay');
+//    ^?
+```
+
+`get` returns `V | undefined` for the key's declared type — here `boolean | undefined` — so unset keys are handled at the type level.
+
+<Callout type="info" title="enabledAutoplay is a real key">
+  The built-in autoplay reads `enabledAutoplay` from this exact store to decide whether to run per-player.
+  Declaring it here is how you get a typed toggle for [autoplay](/docs/guides/autoplay).
+</Callout>
+
+## Keys starting with `internal_`
+
+Hoshimi keeps its own bookkeeping under `internal_`-prefixed keys, and those are hidden from every enumeration (`keys()`, `values()`, `entries()`, `all()`). Don't declare or write them — treat that prefix as reserved.

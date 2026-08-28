@@ -16,6 +16,7 @@ const iconSidebarColors: Partial<Record<keyof typeof icons, string>> = {
   Workflow: "#22c55e",
   Server: "#3b82f6",
   Music: "#ec4899",
+  ChefHat: "#ef4444",
 };
 
 // See https://fumadocs.dev/docs/headless/source-api for more info

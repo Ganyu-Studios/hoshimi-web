@@ -1,6 +1,0 @@
-{
-  "title": "Advanced",
-  "icon": "Wrench",
-  "defaultOpen": false,
-  "pages": ["custom-structures", "errors-recovery"]
-}

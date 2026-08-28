@@ -1,0 +1,47 @@
+---
+title: Add a "Previous Track" Button
+description: Play the last track again using the queue history.
+---
+
+Every track that ends naturally is pushed onto `queue.history` (capped at `maxHistory`). That history is what powers a "previous" control.
+
+## Peek vs. take
+
+`queue.previous()` returns the most recent history entry **without** removing it; `queue.previous(true)` pops it off and persists the change.
+
+```ts twoslash copy wrap title="peek-previous.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+// ---cut---
+const last = await player.queue.previous();      // peek, history untouched
+const taken = await player.queue.previous(true); // pop it off the history
+
+console.log(last?.info.title, taken?.info.title);
+```
+
+## Play the previous track
+
+Take the last track off the history and play it. Replaying over the current track ends it with the `Replaced` reason, which Hoshimi handles without pushing it back to history — so you will not loop between the same two tracks.
+
+```ts twoslash copy wrap title="previous-button.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+// ---cut---
+const previous = await player.queue.previous(true);
+if (previous) await player.play({ track: previous });
+```
+
+## List the history
+
+`queue.history` is a plain array (newest first), so a "recently played" list is just a map.
+
+```ts twoslash copy wrap title="history-list.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+// ---cut---
+const recent = player.queue.history.map((track) => track.info.title);
+console.log(recent);
+```

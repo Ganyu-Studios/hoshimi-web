@@ -1,0 +1,84 @@
+---
+title: Resume Sessions After a Restart
+description: Survive socket drops, fresh Lavalink sessions, and full process restarts with the right layer.
+---
+
+"Resuming" is really three different failure modes, each handled at a different layer. They are **not** alternatives — you generally enable the first two together and reach for the third when the process itself dies.
+
+| What broke | Process alive? | Lavalink keeps the session? | Handled by |
+|---|---|---|---|
+| Socket blip | Yes | Yes | `resumable` (Lavalink resume) |
+| Fresh session (Lavalink restarted / window expired) | Yes | No | `byLibrary` (library replay) |
+| Process restart | No | — | Rebuild from storage |
+
+## Layer 1: Lavalink resume (`resumable`)
+
+`resumable` configures the node's **Lavalink session** to stay alive for `timeout` seconds if the socket drops. Reconnect within that window and Lavalink hands the same session back — the ready event arrives with `resumed: true` and the audio never stopped.
+
+```ts twoslash copy wrap title="lavalink-resume.ts"
+import { createHoshimi } from 'hoshimi';
+
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+// ---cut---
+const manager = createHoshimi({
+  sendPayload,
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  nodeOptions: {
+    sessionOptions: {
+      resumable: true,
+      timeout: 60,
+    },
+  },
+});
+```
+
+This only covers a **transient socket drop while your process stays up**. If Lavalink itself restarts, or the reconnect misses the window, the session is gone and the next layer takes over.
+
+## Layer 2: Library replay (`byLibrary`)
+
+When the node reconnects on a **fresh** session (`resumed: false`) and Hoshimi still holds players in memory, `byLibrary` replays that state onto the node — reconnecting each player, destroying the empty ones, resending the voice state, syncing the queue and replaying the current track.
+
+```ts twoslash copy wrap title="library-resume.ts"
+import { createHoshimi, resumeByLibrary } from 'hoshimi';
+
+const sendPayload = async (guildId: string, payload: unknown): Promise<void> => {};
+// ---cut---
+const manager = createHoshimi({
+  sendPayload,
+  nodes: [{ host: 'localhost', port: 2333, password: 'youshallnotpass' }],
+  nodeOptions: {
+    sessionOptions: {
+      resumable: true, // Layer 1 first...
+      byLibrary: true, // ...and this is the fallback when the session is fresh.
+      async resumeFn(node, players) {
+        // Your own reconnect logic, then hand off to the built-in one.
+        await resumeByLibrary(node, players);
+      },
+    },
+  },
+});
+```
+
+<Callout type="warn" title="byLibrary needs the players in memory">
+  `byLibrary` replays what the **running process** still holds. It fires only on a fresh session
+  (`!resumed`) and only when there are players to replay — so it complements `resumable`, it does not
+  replace it. If the whole process restarted, `manager.players` is empty and there is nothing to replay;
+  that is Layer 3.
+</Callout>
+
+`resumeFn` runs only while `byLibrary` is enabled, and defaults to `resumeByLibrary` when omitted — so leaving it out keeps the built-in behavior.
+
+## Layer 3: Rebuild from storage
+
+If the **process** restarts, the in-memory queue is gone, so neither layer above has anything to resume. Point a [queue storage adapter](/docs/guides/queue-storage) at a durable backend, and after you recreate the player, repopulate its queue from what was persisted.
+
+```ts twoslash copy wrap title="rebuild-queue.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+// ---cut---
+// Repopulate the in-memory queue from whatever the storage adapter persisted.
+await player.queue.utils.sync({ syncCurrent: true });
+```
+
+`syncCurrent: true` also restores `queue.current`; see [Restore the current track and position](/docs/recipes/restore-now-playing) to resume playback from where it left off.

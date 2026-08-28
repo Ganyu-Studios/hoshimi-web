@@ -1,0 +1,15 @@
+{
+  "title": "Recipes",
+  "icon": "ChefHat",
+  "defaultOpen": false,
+  "pages": [
+    "resuming",
+    "restore-now-playing",
+    "previous-track",
+    "manual-voice-update",
+    "override-structures",
+    "typed-requester",
+    "typed-player-data",
+    "recover-from-failures"
+  ]
+}

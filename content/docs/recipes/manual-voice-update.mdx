@@ -1,0 +1,47 @@
+---
+title: Send a Manual Voice Update
+description: Push a voice-server payload to Lavalink yourself to force a reconnect or apply a rotation.
+---
+
+Hoshimi normally builds the `voice` payload from Discord gateway events for you. When you need to send one **manually** — to force a voice reconnect, or to apply a rotated token/endpoint without waiting for a gateway event — use the raw player update.
+
+## The player update body
+
+`player.updatePlayer(data)` sends a raw `PATCH /sessions/{sessionId}/players/{guildId}` body. The `voice` field lives inside `playerOptions`, alongside `track`, `volume`, `paused`, `position`, `endTime` and `filters`.
+
+```ts twoslash copy wrap title="manual-voice-update.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+declare const token: string;
+declare const endpoint: string;
+declare const sessionId: string;
+declare const channelId: string;
+// ---cut---
+await player.updatePlayer({
+  noReplace: true,
+  playerOptions: {
+    voice: { token, endpoint, sessionId, channelId },
+  },
+});
+```
+
+## Resend the current connection
+
+To force a reconnect you rarely have a fresh triplet — you just want to resend what the player already holds. `player.voice.toNode()` serializes the stored voice state, returning `null` when it is incomplete.
+
+```ts twoslash copy wrap title="force-voice-reconnect.ts"
+import type { Player } from 'hoshimi';
+
+declare const player: Player;
+// ---cut---
+const voice = player.voice.toNode();
+if (voice) {
+  await player.updatePlayer({ noReplace: true, playerOptions: { voice } });
+}
+```
+
+<Callout type="info" title="This does not touch Discord">
+  A manual voice update only tells Lavalink about the voice server. It does not move or reconnect the bot
+  on Discord's side — for that use `player.setVoice()`, `player.voice.connect()` or `player.voice.move()`.
+</Callout>

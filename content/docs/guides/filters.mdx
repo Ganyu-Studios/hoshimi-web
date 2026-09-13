@@ -77,8 +77,8 @@ await filters.set('myFilter', { gain: 2 });
 // pluginFilters["my-plugin"].boost — nested, the spec's plugin shape
 await filters.set('boost', { gain: 2 }, { plugin: 'my-plugin' });
 
-// filters.forkEcho — top level, where a fork exposes its own filters
-await filters.set('forkEcho', { decay: 0.5 }, { top: true });
+// filters.forkReverb — top level, where a fork exposes its own filters
+await filters.set('forkReverb', { decay: 0.5 }, { top: true });
 
 // Clearing needs the same routing that was used to set it
 await filters.clear('boost', { plugin: 'my-plugin' });

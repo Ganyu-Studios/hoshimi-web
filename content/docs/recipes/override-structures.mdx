@@ -35,20 +35,20 @@ declare module 'hoshimi' {
 ## Override several at once
 
 ```ts twoslash copy wrap title="multi-override.ts"
-import { LyricsManager, Node, Player, Structures } from 'hoshimi';
+import { LyricsManager, Node, Queue, Structures } from 'hoshimi';
 
-class ExtendedPlayer extends Player {}
 class ExtendedNode extends Node {}
+class ExtendedQueue extends Queue {}
 class ExtendedLyricsManager extends LyricsManager {}
 
-Structures.Player = (...args) => new ExtendedPlayer(...args);
 Structures.Node = (...args) => new ExtendedNode(...args);
+Structures.Queue = (...args) => new ExtendedQueue(...args);
 Structures.LyricsManager = (...args) => new ExtendedLyricsManager(...args);
 
 declare module 'hoshimi' {
   interface CustomizableStructures {
-    Player: ExtendedPlayer;
     Node: ExtendedNode;
+    Queue: ExtendedQueue;
     LyricsManager: ExtendedLyricsManager;
   }
 }

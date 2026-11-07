@@ -7,8 +7,8 @@ export function baseOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
-        <span className="group/brand inline-flex items-center gap-2 font-semibold">
-          <HoshimiLogo className="size-5 transition-transform duration-300 ease-out group-hover/brand:rotate-[18deg] group-hover/brand:scale-110" />
+        <span className="group/brand inline-flex items-center gap-2.5 text-xl font-semibold tracking-tight">
+          <HoshimiLogo className="size-7 shrink-0 transition-transform duration-300 ease-out group-hover/brand:rotate-[18deg] group-hover/brand:scale-110" />
           {appName}
         </span>
       ),

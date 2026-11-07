@@ -43,6 +43,7 @@ export default async function Page(props: PageProps<"/docs/[[...slug]]">) {
     <DocsPage
       toc={page.data.toc}
       full={page.data.full}
+      tableOfContent={{ style: "block" }}
       className="text-slate-900 dark:text-slate-100"
     >
       <DocsTitle>{page.data.title}</DocsTitle>

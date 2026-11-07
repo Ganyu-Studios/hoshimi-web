@@ -1,6 +1,6 @@
 import type * as PageTree from "fumadocs-core/page-tree";
 import { DocsLayout } from "fumadocs-ui/layouts/notebook";
-import type { LayoutTab } from "fumadocs-ui/layouts/shared";
+import { FullSearchTrigger } from "fumadocs-ui/layouts/shared/slots/search-trigger";
 import {
   Box,
   Braces,
@@ -12,8 +12,8 @@ import {
   Variable as VariableIcon,
 } from "lucide-react";
 import { type CSSProperties, createElement, type ReactNode } from "react";
+import { type DocsNavTab, DocsNavTabs } from "@/components/docs/docs-nav-tabs";
 import { NavTabsRail } from "@/components/docs/nav-tabs-rail";
-import { ReadingProgress } from "@/components/docs/reading-progress";
 import { SidebarActiveRail } from "@/components/docs/sidebar-active-rail";
 import {
   type ApiEntry,
@@ -129,19 +129,8 @@ function guideRootFolder(): PageTree.Folder {
   };
 }
 
-function collectUrls(node: PageTree.Node, urls: Set<string>) {
-  if (node.type === "page") urls.add(node.url);
-  else if (node.type === "folder") {
-    if (node.index) urls.add(node.index.url);
-    for (const child of node.children) collectUrls(child, urls);
-  }
-}
-
-function tabFor(folder: PageTree.Folder, fallbackUrl: string): LayoutTab {
-  const urls = new Set<string>();
-  collectUrls(folder, urls);
-
-  // fumadocs' navbar tabs render only `title`, so the icon is folded into it.
+function tabFor(folder: PageTree.Folder, fallbackUrl: string): DocsNavTab {
+  // The icon is folded into the title: the tab renders a single node.
   return {
     title: (
       <span className="inline-flex items-center gap-2">
@@ -149,14 +138,11 @@ function tabFor(folder: PageTree.Folder, fallbackUrl: string): LayoutTab {
         {folder.name}
       </span>
     ),
-    icon: folder.icon,
     url: folder.index?.url ?? fallbackUrl,
-    urls,
-    $folder: folder,
   };
 }
 
-function buildTree(): { tree: PageTree.Root; tabs: LayoutTab[] } {
+function buildTree(): { tree: PageTree.Root; tabs: DocsNavTab[] } {
   const guide = guideRootFolder();
   const api = apiRootFolder();
 
@@ -172,18 +158,29 @@ function buildTree(): { tree: PageTree.Root; tabs: LayoutTab[] } {
 
 export default function Layout({ children }: LayoutProps<"/docs">) {
   const { tree, tabs } = buildTree();
+  const base = baseOptions();
 
   return (
     <div className="hoshimi-docs">
-      <ReadingProgress />
       <SidebarActiveRail />
       <NavTabsRail />
       <DocsLayout
+        {...base}
         tree={tree}
-        tabMode="navbar"
-        tabs={tabs}
-        sidebar={{ defaultOpenLevel: 0 }}
-        {...baseOptions()}
+        // Sections are switched from our own navbar tabs, so fumadocs' tab UI
+        // (second navbar row / sidebar dropdown) is turned off.
+        tabs={false}
+        sidebar={{
+          defaultOpenLevel: 0,
+          // Search lives at the top of the sidebar (and its mobile drawer).
+          banner: <FullSearchTrigger className="w-full" />,
+        }}
+        searchToggle={{
+          components: {
+            // The slot that used to hold the search field now holds the tabs.
+            lg: <DocsNavTabs tabs={tabs} />,
+          },
+        }}
       >
         {children}
       </DocsLayout>

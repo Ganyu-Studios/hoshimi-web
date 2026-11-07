@@ -204,35 +204,23 @@ function ApiKindCard({ kind }: { kind: ApiKind }) {
       href={kindHref(kind)}
       className="hoshimi-lift group rounded-lg border border-fd-border bg-fd-background p-4 hover:border-fd-primary/40 hover:bg-fd-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fd-ring"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="flex items-center gap-2 text-base font-semibold text-fd-foreground">
-          <span className="inline-flex size-7 items-center justify-center rounded-lg border border-fd-border bg-fd-secondary/60 transition-colors group-hover:border-fd-primary/30">
-            <KindIcon kind={kind} />
-          </span>
+          <KindIcon kind={kind} />
           {apiKindLabel[kind]}
         </h2>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <KindBadge kind={kind} />
-          <span
-            role="img"
-            className="inline-flex h-6 min-w-6 items-center justify-center rounded-md border border-fd-border bg-fd-secondary px-1.5 text-[11px] font-semibold tabular-nums text-fd-foreground"
-            aria-label={`${entries.length} ${apiKindLabel[kind].toLowerCase()}`}
-          >
-            {entries.length}
-          </span>
-        </div>
+        <span
+          role="img"
+          className="text-xs font-medium tabular-nums text-fd-muted-foreground"
+          aria-label={`${entries.length} ${apiKindLabel[kind].toLowerCase()}`}
+        >
+          {entries.length}
+        </span>
       </div>
       {preview.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {preview.map((entry) => (
-            <code
-              key={entry.slug}
-              className="rounded-md bg-fd-secondary px-1.5 py-0.5 text-[11px] text-fd-foreground/75"
-            >
-              {entry.name}
-            </code>
-          ))}
-        </div>
+        <p className="mt-3 line-clamp-2 text-xs leading-5 text-fd-muted-foreground">
+          {preview.map((entry) => entry.name).join(", ")}
+        </p>
       )}
     </Link>
   );
@@ -1351,7 +1339,12 @@ export async function ApiReference({ apiSlug }: { apiSlug: string[] }) {
   }
 
   return (
-    <DocsPage toc={toc(tocItems)} full>
+    <DocsPage
+      toc={toc(tocItems)}
+      full
+      // `full` turns the TOC off by default; API pages still want "On this page".
+      tableOfContent={{ enabled: true, style: "block" }}
+    >
       <DocsTitle
         id="_top"
         className="scroll-mt-24 max-w-full text-balance text-[2.35rem] font-bold leading-[1.1] [overflow-wrap:anywhere]"

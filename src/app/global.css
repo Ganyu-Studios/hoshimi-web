@@ -2,6 +2,7 @@
 @import "fumadocs-ui/css/neutral.css";
 @import "fumadocs-ui/css/preset.css";
 @import "fumadocs-twoslash/twoslash.css";
+@import "./docs.css";
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -26,7 +27,7 @@
   --ring: hsl(194 92% 42%);
   --radius: 0.9rem;
 
-  /* Shared Frost accent line (sliding tab rail + reading progress) and the
+  /* Shared Frost accent line (sliding tab rail) and the
      easing used by the sliding indicators, kept in one place. */
   --hoshimi-frost-line: linear-gradient(
     90deg,
@@ -83,6 +84,16 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Thin scrollbars tinted from the palette, everywhere. The standard properties
+   are used on purpose: in Chrome, setting `scrollbar-color` makes the
+   ::-webkit-scrollbar pseudo-elements be ignored, so mixing them is pointless.
+   Elements that hide their scrollbar (`scrollbar-width: none`) still win. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent)
+    transparent;
+}
+
 html:has(body[data-scroll-locked]) {
   scrollbar-gutter: auto;
 }
@@ -126,211 +137,6 @@ h4,
 h5,
 h6 {
   font-family: var(--font-heading), sans-serif;
-}
-
-.hoshimi-grid {
-  background-image:
-    linear-gradient(hsl(224 30% 30% / 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(224 30% 30% / 0.08) 1px, transparent 1px);
-  background-size: 34px 34px;
-}
-
-.dark .hoshimi-grid {
-  background-image:
-    linear-gradient(hsl(210 35% 90% / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(210 35% 90% / 0.035) 1px, transparent 1px);
-}
-
-.hoshimi-card {
-  border: 1px solid hsl(222 24% 82% / 0.8);
-  background: linear-gradient(
-    160deg,
-    hsl(0 0% 100% / 0.92),
-    hsl(220 38% 96% / 0.92)
-  );
-  box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.92),
-    0 16px 30px hsl(225 30% 62% / 0.16);
-  backdrop-filter: blur(6px);
-}
-
-.dark .hoshimi-card {
-  border: 1px solid hsl(215 22% 100% / 0.12);
-  background: linear-gradient(
-    160deg,
-    hsl(225 32% 13% / 0.9),
-    hsl(232 28% 11% / 0.86)
-  );
-  box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.06),
-    0 16px 42px hsl(242 70% 2% / 0.4);
-}
-
-.hoshimi-badge {
-  border: 1px solid hsl(188 92% 68% / 0.45);
-  background: linear-gradient(
-    120deg,
-    hsl(188 94% 66% / 0.28),
-    hsl(277 92% 73% / 0.28)
-  );
-}
-
-.hoshimi-text-glow {
-  background: linear-gradient(
-    120deg,
-    hsl(187 100% 82%),
-    hsl(211 95% 89%),
-    hsl(278 100% 84%)
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* Slow drifting sheen across the gradient headline. */
-.hoshimi-text-shimmer {
-  background-size: 200% auto;
-  animation: hoshimi-shimmer 6s ease-in-out infinite;
-}
-
-@keyframes hoshimi-shimmer {
-  0%,
-  100% {
-    background-position: 0% center;
-  }
-  50% {
-    background-position: 100% center;
-  }
-}
-
-/* Soft twinkle for the badge sparkle. */
-.hoshimi-twinkle {
-  animation: hoshimi-twinkle 2.8s ease-in-out infinite;
-  transform-origin: center;
-}
-
-@keyframes hoshimi-twinkle {
-  0%,
-  100% {
-    opacity: 0.7;
-    transform: scale(0.92) rotate(0deg);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.12) rotate(12deg);
-  }
-}
-
-/* Two slowly drifting aurora blobs behind the hero content. */
-.hoshimi-aurora::before,
-.hoshimi-aurora::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(80px);
-  opacity: 0.5;
-  will-change: transform;
-}
-
-.hoshimi-aurora::before {
-  top: -8rem;
-  left: -6rem;
-  width: 28rem;
-  height: 28rem;
-  background: radial-gradient(
-    circle at center,
-    hsl(188 90% 62% / 0.55),
-    transparent 70%
-  );
-  animation: hoshimi-float-a 16s ease-in-out infinite;
-}
-
-.hoshimi-aurora::after {
-  top: -4rem;
-  right: -8rem;
-  width: 32rem;
-  height: 32rem;
-  background: radial-gradient(
-    circle at center,
-    hsl(278 90% 70% / 0.45),
-    transparent 70%
-  );
-  animation: hoshimi-float-b 20s ease-in-out infinite;
-}
-
-.dark .hoshimi-aurora::before {
-  opacity: 0.32;
-}
-
-.dark .hoshimi-aurora::after {
-  opacity: 0.3;
-}
-
-@keyframes hoshimi-float-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(2rem, 1.5rem) scale(1.08);
-  }
-}
-
-@keyframes hoshimi-float-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-2.5rem, 2rem) scale(1.05);
-  }
-}
-
-/* Faint scattered starfield — a nod to "hoshi" (star). Two layered dot grids
-   drift and breathe at different rates. Strongest near the top of the hero. */
-.hoshimi-stars {
-  background-image:
-    radial-gradient(
-      1.5px 1.5px at 12% 18%,
-      hsl(190 100% 80% / 0.9),
-      transparent
-    ),
-    radial-gradient(
-      1.5px 1.5px at 78% 12%,
-      hsl(280 100% 84% / 0.85),
-      transparent
-    ),
-    radial-gradient(1px 1px at 42% 32%, hsl(210 100% 88% / 0.8), transparent),
-    radial-gradient(
-      1.5px 1.5px at 90% 40%,
-      hsl(255 100% 86% / 0.7),
-      transparent
-    ),
-    radial-gradient(1px 1px at 26% 52%, hsl(190 100% 82% / 0.6), transparent),
-    radial-gradient(1px 1px at 62% 60%, hsl(280 100% 86% / 0.55), transparent),
-    radial-gradient(
-      1.5px 1.5px at 8% 70%,
-      hsl(210 100% 86% / 0.45),
-      transparent
-    );
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent 75%);
-  mask-image: linear-gradient(180deg, #000, transparent 75%);
-  opacity: 0.55;
-  animation: hoshimi-stars-breathe 7s ease-in-out infinite;
-}
-
-.dark .hoshimi-stars {
-  opacity: 0.75;
-}
-
-@keyframes hoshimi-stars-breathe {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-  50% {
-    opacity: 0.7;
-  }
 }
 
 /* ---------------------------------------------------------------------------
@@ -411,10 +217,6 @@ h6 {
   animation-delay: 0.2s;
 }
 
-.hoshimi-fade-in {
-  animation: hoshimi-fade-in 0.4s ease both;
-}
-
 /* Hover lift for interactive cards/rows. */
 .hoshimi-lift {
   transition:
@@ -429,32 +231,13 @@ h6 {
     color-mix(in oklab, var(--color-fd-primary) 40%, transparent);
 }
 
-/* Color the sidebar folder icons and mark the active section with a dot,
-   mirroring the Seyfert docs. Scoped to the docs shell. */
+/* Color the sidebar folder icons. Scoped to the docs shell. */
 .hoshimi-docs
   #nd-sidebar
   :is(button, a):has(.lucide-chevron-down)
   > svg:not([data-icon]),
 .hoshimi-docs #nd-sidebar p > svg {
   transition: color 160ms ease;
-}
-
-.hoshimi-docs
-  #nd-sidebar
-  :is(button, a):has(.lucide-chevron-down)[data-active="true"]::after,
-.hoshimi-docs
-  #nd-sidebar
-  :is(button, a):has(.lucide-chevron-down):has(
-    + div a[data-active="true"]
-  )::after {
-  content: "";
-  order: 2;
-  margin-inline-start: 0.4rem;
-  width: 0.375rem;
-  height: 0.375rem;
-  border-radius: 999px;
-  background-color: #22c55e;
-  box-shadow: 0 0 0 2px color-mix(in oklab, #22c55e 16%, transparent);
 }
 
 /* Smooth the navbar tab indicator + sidebar link hovers. */
@@ -469,9 +252,12 @@ h6 {
   position: absolute;
   top: 0;
   inset-inline: 0;
-  border-radius: 0 0.4rem 0.4rem 0;
-  background: color-mix(in oklab, var(--color-fd-primary) 10%, transparent);
-  border-inline-start: 2px solid var(--color-fd-primary);
+  border-radius: 0.6rem;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--primary) 14%, transparent),
+    color-mix(in oklab, var(--accent) 6%, transparent)
+  );
   pointer-events: none;
   z-index: 0;
   opacity: 1;
@@ -513,41 +299,10 @@ h6 {
     width 0.34s var(--hoshimi-ease-slide);
 }
 
-/* Defer to the sliding rail: drop fumadocs' per-anchor active underline so the
-   two indicators don't stack. Text-color emphasis on the active tab stays. */
-.hoshimi-docs [data-header-tabs] > a {
-  /* (0,2,1) specificity already beats fumadocs' `border-fd-primary` utility, so
-     no !important needed to drop the per-anchor underline. */
-  border-bottom-color: transparent;
-}
-
-/* Reading-progress bar pinned to the top of the viewport (ReadingProgress). The
-   fill is scaled on the X axis from the left, so only the transform changes on
-   scroll — cheap to animate. */
-.hoshimi-progress {
-  position: fixed;
-  inset-block-start: 0;
-  inset-inline: 0;
-  z-index: 50;
-  height: 2px;
-  pointer-events: none;
-}
-
-.hoshimi-progress-fill {
-  height: 100%;
-  width: 100%;
-  transform-origin: left center;
-  border-radius: 0 999px 999px 0;
-  background: var(--hoshimi-frost-line);
-  box-shadow: 0 0 8px hsl(200 95% 64% / 0.5);
-  transition: transform 0.1s linear;
-}
-
 /* Frost accent for the active "On this page" TOC item, echoing the sidebar /
    tab rails so the whole chrome shares one active-state language. */
 .hoshimi-docs #nd-toc a[data-active="true"] {
   color: var(--color-fd-primary);
-  font-weight: 600;
 }
 
 /* Body links pick up a subtle frost-tinted underline inside docs prose. Inline
@@ -566,17 +321,6 @@ h6 {
 @media (prefers-reduced-motion: reduce) {
   .hoshimi-animate-in > *,
   .hoshimi-animate-in .grid > *,
-  .hoshimi-fade-in,
-  .hoshimi-text-shimmer,
-  .hoshimi-twinkle,
-  .hoshimi-stars,
-  .hoshimi-aurora::before,
-  .hoshimi-aurora::after {
-    animation: none;
-  }
-  .hoshimi-progress-fill {
-    transition: none;
-  }
   .hoshimi-lift {
     transition: none;
   }
